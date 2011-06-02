@@ -36,6 +36,7 @@
 #import <objc/message.h>
 #import <MessageUI/MessageUI.h>
 
+static NSString *ShareKitStringTable = @"ShareKit";
 
 @implementation SHK
 
@@ -601,7 +602,7 @@ void SHKSwizzle(Class c, SEL orig, SEL newClassName)
 NSString* SHKLocalizedString(NSString* key, ...) 
 {
 	// Localize the format
-	NSString *localizedStringFormat = NSLocalizedString(key, key);
+	NSString *localizedStringFormat = NSLocalizedStringFromTable(key, ShareKitStringTable, key);
 	
 	va_list args;
     va_start(args, key);

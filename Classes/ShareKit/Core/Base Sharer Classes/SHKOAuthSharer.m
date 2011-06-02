@@ -28,7 +28,7 @@
 #import "SHKOAuthSharer.h"
 #import "SHKOAuthView.h"
 #import "OAuthConsumer.h"
-
+#import "OAAsynchronousDataFetcher.h"
 
 @implementation SHKOAuthSharer
 
@@ -255,7 +255,17 @@
 					 forKey:@"accessSecret"
 			forSharer:[self sharerId]];
 	
-	[SHK setAuthValue:accessToken.sessionHandle
+    NSString *session = nil;
+    if ([accessToken respondsToSelector:@selector(sessionHandle)])
+    {
+        session = [accessToken sessionHandle];
+    }
+    else if ([accessToken respondsToSelector:@selector(session)])
+    {
+        session = [accessToken session];
+    }
+    
+	[SHK setAuthValue:session
 			   forKey:@"sessionHandle"
 			forSharer:[self sharerId]];
 }
@@ -309,7 +319,16 @@
 		self.accessToken = [[[OAToken alloc] initWithKey:key secret:secret] autorelease];
 		
 		if (sessionHandle != nil)
-			accessToken.sessionHandle = sessionHandle;
+        {
+            if ([accessToken respondsToSelector:@selector(setSessionHandle:)])
+            {
+                [accessToken setSessionHandle:sessionHandle];
+            }
+            else if ([accessToken respondsToSelector:@selector(setSession:)])
+            {
+                [accessToken setSession:sessionHandle];
+            }
+        }
 		
 		return accessToken != nil;
 	}

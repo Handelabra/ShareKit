@@ -29,6 +29,7 @@
 
 
 #import "SHKTwitter.h"
+#import "OAAsynchronousDataFetcher.h"
 
 @implementation SHKTwitter
 
@@ -36,7 +37,7 @@
 
 - (id)init
 {
-	if (self = [super init])
+	if ((self = [super init]))
 	{	
 		// OAUTH		
 		self.consumerKey = SHKTwitterConsumerKey;		
