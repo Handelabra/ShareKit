@@ -260,9 +260,10 @@
 			forSharer:[self sharerId]];
 	
     NSString *session = nil;
-    if ([accessToken respondsToSelector:@selector(sessionHandle)])
+    SEL sessionHandleSelector = @selector(sessionHandle);
+    if ([accessToken respondsToSelector:sessionHandleSelector])
     {
-        session = [accessToken sessionHandle];
+			session = [accessToken performSelector:sessionHandleSelector];
     }
     else if ([accessToken respondsToSelector:@selector(session)])
     {
