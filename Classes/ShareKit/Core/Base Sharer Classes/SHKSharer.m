@@ -570,6 +570,9 @@
 		case SHKShareTypeFile:
 			return (item.data != nil);
 			break;
+		case SHKShareTypeUndefined:
+			default:
+				break;
 	}
 	
 	return NO;

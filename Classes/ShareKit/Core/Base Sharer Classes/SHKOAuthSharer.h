@@ -44,7 +44,7 @@
 	OAToken *requestToken;
 	OAToken *accessToken;
 	
-	id<OASignatureProviding> signatureProvider;
+	NSObject<OASignatureProviding>* signatureProvider;
 	
 	NSDictionary *authorizeResponseQueryVars;
 }
@@ -61,7 +61,7 @@
 @property (retain) OAToken *requestToken;
 @property (retain) OAToken *accessToken;
 
-@property (retain) id<OASignatureProviding> signatureProvider;
+@property (retain) NSObject<OASignatureProviding>* signatureProvider;
 
 @property (nonatomic, retain) NSDictionary *authorizeResponseQueryVars;
 
