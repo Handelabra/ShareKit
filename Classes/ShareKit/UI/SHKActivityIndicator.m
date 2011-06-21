@@ -229,13 +229,14 @@ static SHKActivityIndicator *currentIndicator = nil;
 {	
 	if (spinner == nil)
 	{
-		self.spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+		UIActivityIndicatorView * tmpSpinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+		self.spinner = tmpSpinner;
+		[tmpSpinner release], tmpSpinner = nil;
 
 		spinner.frame = CGRectMake(round(self.bounds.size.width/2 - spinner.frame.size.width/2),
 								round(self.bounds.size.height/2 - spinner.frame.size.height/2),
 								spinner.frame.size.width,
-								spinner.frame.size.height);		
-		[spinner release];	
+								spinner.frame.size.height);
 	}
 	
 	[self addSubview:spinner];
