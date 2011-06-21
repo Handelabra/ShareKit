@@ -509,7 +509,7 @@ static NSDictionary *sharersDictionary = nil;
 		SHK *helper = [self currentHelper];
 		
 		if (helper.offlineQueue == nil)
-			helper.offlineQueue = [[NSOperationQueue alloc] init];		
+			helper.offlineQueue = [[[NSOperationQueue alloc] init] autorelease];
 
 		for (NSDictionary *entry in queueList)
 		{
