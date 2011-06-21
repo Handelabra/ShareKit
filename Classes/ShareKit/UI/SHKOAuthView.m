@@ -132,10 +132,11 @@
 {
 	if (spinner == nil)
 	{
-		self.spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhite];
+		UIActivityIndicatorView * tmpSpinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhite];
+		self.spinner = tmpSpinner;
+		[tmpSpinner releas], tmpSpinner = nil;
 		[self.navigationItem setRightBarButtonItem:[[[UIBarButtonItem alloc] initWithCustomView:spinner] autorelease] animated:NO];
 		spinner.hidesWhenStopped = YES;
-		[spinner release];
 	}
 	
 	[spinner startAnimating];
