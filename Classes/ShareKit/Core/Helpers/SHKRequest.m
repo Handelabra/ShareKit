@@ -105,9 +105,9 @@
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSHTTPURLResponse *)theResponse 
 {
 	self.response = theResponse;
-	self.headers = [[response allHeaderFields] mutableCopy];
-	[headers release];
-	
+	NSMutableDictionary * tmpHeaders = [[response allHeaderFields] mutableCopy];
+	self.headers = tmpHeaders;
+	[tmpHeaders release], tmpHeaders = nil;	
 	[data setLength:0];
 }
 
