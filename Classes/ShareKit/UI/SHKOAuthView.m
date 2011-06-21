@@ -45,17 +45,21 @@
 {
     if ((self = [super initWithNibName:nil bundle:nil])) 
 	{
-		[self.navigationItem setLeftBarButtonItem:[[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel
-																								  target:self
-																								  action:@selector(cancel)] autorelease] animated:NO];
+		UIBarButtonItem * tmpButton =
+			[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel
+																										target:self
+																										action:@selector(cancel)];
+		[self.navigationItem setLeftBarButtonItem:tmpButton animated:NO];
+		[tmpButton release], tmpButton = nil;
 		
 		self.delegate = d;
 		
-		self.webView = [[UIWebView alloc] initWithFrame:CGRectZero];
+		UIWebView * tmpWebView = [[UIWebView alloc] initWithFrame:CGRectZero];
+		self.webView = tmpWebView;
+		[tmpWebView release], tmpWebView = nil;
 		webView.delegate = self;
 		webView.scalesPageToFit = YES;
 		webView.dataDetectorTypes = UIDataDetectorTypeNone;
-		[webView release];
 		
 		[webView loadRequest:[NSURLRequest requestWithURL:authorizeURL]];		
 		
