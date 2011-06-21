@@ -510,15 +510,12 @@ static NSDictionary *sharersDictionary = nil;
 		
 		if (helper.offlineQueue == nil)
 			helper.offlineQueue = [[NSOperationQueue alloc] init];		
-	
-		SHKItem *item;
-		NSString *sharerId, *uid;
-		
+
 		for (NSDictionary *entry in queueList)
 		{
-			item = [SHKItem itemFromDictionary:[entry objectForKey:@"item"]];
-			sharerId = [entry objectForKey:@"sharer"];
-			uid = [entry objectForKey:@"uid"];
+			SHKItem * item = [SHKItem itemFromDictionary:[entry objectForKey:@"item"]];
+			NSString * sharerId = [entry objectForKey:@"sharer"];
+			NSString * uid = [entry objectForKey:@"uid"];
 			
 			if (item != nil && sharerId != nil)
 				[helper.offlineQueue addOperation:[[[SHKOfflineSharer alloc] initWithItem:item forSharer:sharerId uid:uid] autorelease]];
