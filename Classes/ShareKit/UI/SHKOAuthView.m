@@ -134,7 +134,7 @@
 	{
 		UIActivityIndicatorView * tmpSpinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhite];
 		self.spinner = tmpSpinner;
-		[tmpSpinner releas], tmpSpinner = nil;
+		[tmpSpinner release], tmpSpinner = nil;
 		[self.navigationItem setRightBarButtonItem:[[[UIBarButtonItem alloc] initWithCustomView:spinner] autorelease] animated:NO];
 		spinner.hidesWhenStopped = YES;
 	}
