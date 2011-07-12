@@ -48,6 +48,11 @@
 	return YES;
 }
 
++ (BOOL)canShareImages
+{
+	return YES;
+}
+
 + (BOOL)shareRequiresInternetConnection
 {
 	return NO;
@@ -73,11 +78,30 @@
 
 - (BOOL)send
 {	
-	if (item.shareType == SHKShareTypeURL)
-		[[UIPasteboard generalPasteboard] setString:item.URL.absoluteString];
-	
-	else
-		[[UIPasteboard generalPasteboard] setImage:item.image];
+	UIPasteboard *generalPasteboard = [UIPasteboard generalPasteboard];
+    switch (item.shareType)
+    {
+        case SHKShareTypeURL:
+            [generalPasteboard setString:item.URL.absoluteString];
+            break;
+        
+        case SHKShareTypeImage:
+            [generalPasteboard setImage:item.image];
+            break;
+        
+        case SHKShareTypeImages:
+            [generalPasteboard setImages:item.images];
+            break;
+        
+        case SHKShareTypeFile:
+        case SHKShareTypeText:
+            // TODO: support these types.
+            break;
+        
+        case SHKShareTypeUndefined:
+        default:
+            break;
+    }
 	
 	// Notify user
 	[[SHKActivityIndicator currentIndicator] displayCompleted:SHKLocalizedString(@"Copied!")];

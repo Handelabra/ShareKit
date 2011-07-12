@@ -68,6 +68,11 @@
 	return YES;
 }
 
++ (BOOL)canShareImages
+{
+	return YES;
+}
+
 + (BOOL)canShareFile
 {
 	return YES;
@@ -170,8 +175,26 @@
 	if (item.data)		
 		[mailController addAttachmentData:item.data mimeType:item.mimeType fileName:item.filename];
 	
+    NSString *imageMimeType = @"image/jpeg";
+    NSString *imageName = @"Image";
+    NSString *imageExt = @"jpg";
 	if (item.image)
-		[mailController addAttachmentData:UIImageJPEGRepresentation(item.image, 1) mimeType:@"image/jpeg" fileName:@"Image.jpg"];
+    {
+		[mailController addAttachmentData:UIImageJPEGRepresentation(item.image, 1.0)
+                                 mimeType:imageMimeType
+                                 fileName:[imageName stringByAppendingPathExtension:imageExt]];
+    }
+    if (item.images)
+    {
+        NSUInteger count = 1;
+        for (UIImage *image in item.images)
+        {
+            [mailController addAttachmentData:UIImageJPEGRepresentation(image, 1.0)
+                                     mimeType:imageMimeType
+                                     fileName:[[NSString stringWithFormat:@"%@-%d", imageName, count] stringByAppendingPathExtension:imageExt]];
+            count++;
+        }
+    }
 	
 	[mailController setSubject:item.title];
 	[mailController setMessageBody:body isHTML:YES];

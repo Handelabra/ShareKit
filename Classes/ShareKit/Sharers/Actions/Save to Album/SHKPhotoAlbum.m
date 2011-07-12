@@ -43,6 +43,11 @@
 	return YES;
 }
 
++ (BOOL)canShareImages
+{
+	return YES;
+}
+
 + (BOOL)shareRequiresInternetConnection
 {
 	return NO;
@@ -69,10 +74,19 @@
 - (BOOL)send
 {	
 	if (item.shareType == SHKShareTypeImage)
+    {
 		UIImageWriteToSavedPhotosAlbum(item.image, nil, nil, nil);
+    }
+    else if (item.shareType == SHKShareTypeImages)
+    {
+        for (UIImage *image in item.images)
+        {
+            UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil);
+        }
+    }
 	
 	// Notify user
-	[[SHKActivityIndicator currentIndicator] displayCompleted:SHKLocalizedString(@"Copied!")];
+	[[SHKActivityIndicator currentIndicator] displayCompleted:SHKLocalizedString(@"Saved!")];
 	
 	// Notify delegate, but quietly
 	self.quiet = YES;

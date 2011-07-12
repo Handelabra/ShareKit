@@ -33,6 +33,7 @@ typedef enum
 	SHKShareTypeURL,
 	SHKShareTypeText,
 	SHKShareTypeImage,
+	SHKShareTypeImages,
 	SHKShareTypeFile
 } SHKShareType;
 
@@ -44,6 +45,7 @@ typedef enum
 	NSURL *URL;
 	
 	UIImage *image;
+    NSArray *images;
 	
 	NSString *title;
 	NSString *text;
@@ -62,6 +64,7 @@ typedef enum
 @property (nonatomic, retain)	NSURL *URL;
 
 @property (nonatomic, retain)	UIImage *image;
+@property (nonatomic, retain)   NSArray *images;
 
 @property (nonatomic, retain)	NSString *title;
 @property (nonatomic, retain)	NSString *text;
@@ -73,6 +76,7 @@ typedef enum
 
 + (SHKItem *)URL:(NSURL *)url title:(NSString *)title;
 + (SHKItem *)image:(UIImage *)image title:(NSString *)title;
++ (SHKItem *)images:(NSArray *)images title:(NSString *)title;
 + (SHKItem *)text:(NSString *)text;
 + (SHKItem *)file:(NSData *)data filename:(NSString *)filename mimeType:(NSString *)mimeType title:(NSString *)title;
 

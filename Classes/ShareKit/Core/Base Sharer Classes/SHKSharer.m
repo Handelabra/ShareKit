@@ -88,6 +88,11 @@
 	return NO;
 }
 
++ (BOOL)canShareImages
+{
+	return NO;
+}
+
 + (BOOL)canShareFile
 {
 	return NO;
@@ -118,6 +123,10 @@
 			
 		case SHKShareTypeImage:
 			return [self canShareImage];
+			break;
+			
+		case SHKShareTypeImages:
+			return [self canShareImages];
 			break;
 			
 		case SHKShareTypeText:
@@ -219,6 +228,20 @@
 	SHKSharer *controller = [[self alloc] init];
 	controller.item.shareType = SHKShareTypeImage;
 	controller.item.image = image;
+	controller.item.title = title;
+	
+	// share and/or show UI
+	[controller share];
+	
+	return [controller autorelease];
+}
+
++ (id)shareImages:(NSArray *)images title:(NSString *)title
+{
+	// Create controller and set share options
+	SHKSharer *controller = [[self alloc] init];
+	controller.item.shareType = SHKShareTypeImages;
+	controller.item.images = images;
 	controller.item.title = title;
 	
 	// share and/or show UI
@@ -561,6 +584,10 @@
 			
 		case SHKShareTypeImage:
 			return (item.image != nil);
+			break;			
+			
+		case SHKShareTypeImages:
+			return (item.images != nil);
 			break;			
 			
 		case SHKShareTypeText:

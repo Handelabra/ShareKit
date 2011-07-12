@@ -39,12 +39,14 @@
 @synthesize shareType;
 @synthesize URL, image, title, text, tags, data, mimeType, filename;
 @synthesize custom;
+@synthesize images;
 
 - (void)dealloc
 {
 	[URL release];
 	
 	[image release];
+    [images release];
 	
 	[title release];
 	[text release];
@@ -85,6 +87,21 @@
 	SHKItem *item = [[SHKItem alloc] init];
 	item.shareType = SHKShareTypeImage;
 	item.image = image;
+	item.title = title;
+	
+	return [item autorelease];
+}
+
++ (SHKItem *)images:(NSArray *)images
+{
+	return [SHKItem images:images title:nil];
+}
+
++ (SHKItem *)images:(NSArray *)images title:(NSString *)title
+{
+	SHKItem *item = [[SHKItem alloc] init];
+	item.shareType = SHKShareTypeImage;
+	item.images = images;
 	item.title = title;
 	
 	return [item autorelease];
