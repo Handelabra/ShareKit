@@ -27,6 +27,11 @@
 
 #import "SHKPhotoAlbum.h"
 
+@interface SHKPhotoAlbum ()
+
+- (void)image:(UIImage*)image didFinishSavingWithError:(NSError*)error contextInfo:(void*)contextInfo;
+
+@end
 
 @implementation SHKPhotoAlbum
 
@@ -73,18 +78,20 @@
 
 - (BOOL)send
 {	
+    [self sendDidStart];
+    
 	if (item.shareType == SHKShareTypeImage)
     {
-		UIImageWriteToSavedPhotosAlbum(item.image, nil, nil, nil);
+		UIImageWriteToSavedPhotosAlbum(item.image, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
     }
     else if (item.shareType == SHKShareTypeImages)
     {
         for (UIImage *image in item.images)
         {
-            UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil);
+            UIImageWriteToSavedPhotosAlbum(image, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
         }
     }
-	
+    
 	// Notify user
 	[[SHKActivityIndicator currentIndicator] displayCompleted:SHKLocalizedString(@"Saved!")];
 	
@@ -93,6 +100,16 @@
 	[self sendDidFinish];
 	
 	return YES;
+}
+
+#pragma mark - UIImageWriteToSavedPhotosAlbum completion method
+
+- (void)image:(UIImage*)image didFinishSavingWithError:(NSError*)error contextInfo:(void*)contextInfo
+{
+    if (error != nil)
+    {
+        [self sendDidFailWithError:error];
+    }
 }
 
 @end
