@@ -402,7 +402,7 @@
 	
 	NSString *value;
 	NSString *sharerId = [self sharerId];
-	NSArray *fields = [[[form sections] objectAtIndex:0] objectForKey:@"rows"];
+	NSArray *fields = [(NSDictionary*)[[form sections] objectAtIndex:0] objectForKey:@"rows"];
 	for(SHKFormFieldSettings *field in fields)
 	{
 		value = [formValues objectForKey:field.key];

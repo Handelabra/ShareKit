@@ -149,7 +149,7 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section 
 {
-    return [[[sections objectAtIndex:section] objectForKey:@"rows"] count];
+    return [[(NSDictionary*)[sections objectAtIndex:section] objectForKey:@"rows"] count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath 
@@ -185,17 +185,17 @@
 
 - (SHKFormFieldSettings *)rowSettingsForIndexPath:(NSIndexPath *)indexPath
 {
-	return [[[sections objectAtIndex:indexPath.section] objectForKey:@"rows"] objectAtIndex:indexPath.row];
+	return [[(NSDictionary*)[sections objectAtIndex:indexPath.section] objectForKey:@"rows"] objectAtIndex:indexPath.row];
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
 {
-	return [[sections objectAtIndex:section] objectForKey:@"header"];
+	return [(NSDictionary*)[sections objectAtIndex:section] objectForKey:@"header"];
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section
 {
-	return [[sections objectAtIndex:section] objectForKey:@"footer"];
+	return [(NSDictionary*)[sections objectAtIndex:section] objectForKey:@"footer"];
 }
 
 
@@ -261,7 +261,7 @@
 	
 	SHKCustomFormFieldCell *cell;
 	int row = 0;
-	NSArray *fields = [[sections objectAtIndex:section] objectForKey:@"rows"];
+	NSArray *fields = [(NSDictionary*)[sections objectAtIndex:section] objectForKey:@"rows"];
 	
 	for(SHKFormFieldSettings *field in fields)
 	{		

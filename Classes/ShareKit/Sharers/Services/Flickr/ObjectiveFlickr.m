@@ -141,7 +141,7 @@ typedef unsigned int NSUInteger;
 
 - (NSURL *)loginURLFromFrobDictionary:(NSDictionary *)inFrob requestedPermission:(NSString *)inPermission
 {
-	NSString *frob = [[inFrob objectForKey:@"frob"] objectForKey:OFXMLTextContentKey];
+	NSString *frob = [(NSDictionary*)[inFrob objectForKey:@"frob"] objectForKey:OFXMLTextContentKey];
     NSDictionary *argDict = [frob length] ? [NSDictionary dictionaryWithObjectsAndKeys:frob, @"frob", inPermission, @"perms", nil] : [NSDictionary dictionaryWithObjectsAndKeys:inPermission, @"perms", nil];
 	NSString *URLString = [NSString stringWithFormat:@"%@?%@", authEndpoint, [self signedQueryFromArguments:argDict]];
 	return [NSURL URLWithString:URLString];
@@ -436,7 +436,7 @@ typedef unsigned int NSUInteger;
         }
         
 		
-		size_t __unused actualWrittenLength;
+//		size_t __unused actualWrittenLength;
 		actualWrittenLength = [outputStream write:buffer maxLength:readSize];
         NSAssert (actualWrittenLength == readSize, @"Must completes the writing");
     }

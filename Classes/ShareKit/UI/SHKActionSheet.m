@@ -88,13 +88,13 @@
 - (void)dismissWithClickedButtonIndex:(NSInteger)buttonIndex animated:(BOOL)animated
 {
 	// Sharers
-	if (buttonIndex >= 0 && buttonIndex < sharers.count)
+	if (buttonIndex >= 0 && (NSUInteger)buttonIndex < sharers.count)
 	{
 		[NSClassFromString([sharers objectAtIndex:buttonIndex]) performSelector:@selector(shareItem:) withObject:item];
 	}
 	
 	// More
-	else if (buttonIndex == sharers.count)
+	else if ((NSUInteger)buttonIndex == sharers.count)
 	{
 		SHKShareMenu *shareMenu = [[SHKCustomShareMenu alloc] initWithStyle:UITableViewStyleGrouped];
 		shareMenu.item = item;

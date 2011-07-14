@@ -53,7 +53,7 @@
 
 - (void)flushCharacters {
   NSCharacterSet* whitespace = [NSCharacterSet whitespaceAndNewlineCharacterSet];
-  for (NSInteger i = 0; i < _chars.length; ++i) {
+  for (NSUInteger i = 0; i < _chars.length; ++i) {
     unichar c = [_chars characterAtIndex:i];
     if (![whitespace characterIsMember:c]) {
       id topContainer = self.topContainer;
@@ -138,9 +138,9 @@
   } else {
     id topObject = [self topObject:YES];
     if ([topObject isKindOfClass:[NSMutableArray class]]) {
-      [topObject addObject:object];
+      [(NSMutableArray*)topObject addObject:object];
     } else if ([topObject isKindOfClass:[NSMutableDictionary class]]) {
-      [topObject setObject:object forKey:name];
+      [(NSMutableDictionary*)topObject setObject:object forKey:name];
     }
   }
 }
