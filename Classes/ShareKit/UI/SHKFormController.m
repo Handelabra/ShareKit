@@ -144,12 +144,12 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView 
 {
-    return sections.count;
+    return (NSInteger)sections.count;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section 
 {
-    return [[(NSDictionary*)[sections objectAtIndex:section] objectForKey:@"rows"] count];
+    return (NSInteger)[(NSArray*)[(NSDictionary*)[sections objectAtIndex:(NSUInteger)section] objectForKey:@"rows"] count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath 
@@ -185,17 +185,17 @@
 
 - (SHKFormFieldSettings *)rowSettingsForIndexPath:(NSIndexPath *)indexPath
 {
-	return [[(NSDictionary*)[sections objectAtIndex:indexPath.section] objectForKey:@"rows"] objectAtIndex:indexPath.row];
+	return [[(NSDictionary*)[sections objectAtIndex:(NSUInteger)indexPath.section] objectForKey:@"rows"] objectAtIndex:(NSUInteger)indexPath.row];
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
 {
-	return [(NSDictionary*)[sections objectAtIndex:section] objectForKey:@"header"];
+	return [(NSDictionary*)[sections objectAtIndex:(NSUInteger)section] objectForKey:@"header"];
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section
 {
-	return [(NSDictionary*)[sections objectAtIndex:section] objectForKey:@"footer"];
+	return [(NSDictionary*)[sections objectAtIndex:(NSUInteger)section] objectForKey:@"footer"];
 }
 
 
@@ -254,18 +254,18 @@
 	return [self formValuesForSection:0];
 }
 			
-- (NSMutableDictionary *)formValuesForSection:(int)section
+- (NSMutableDictionary *)formValuesForSection:(NSUInteger)section
 {
 	// go through all form fields and get values
 	NSMutableDictionary *formValues = [NSMutableDictionary dictionaryWithCapacity:0];
 	
 	SHKCustomFormFieldCell *cell;
-	int row = 0;
+	NSUInteger row = 0;
 	NSArray *fields = [(NSDictionary*)[sections objectAtIndex:section] objectForKey:@"rows"];
 	
 	for(SHKFormFieldSettings *field in fields)
 	{		
-		cell = (SHKCustomFormFieldCell *)[self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:row inSection:section]];
+		cell = (SHKCustomFormFieldCell *)[self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:(NSInteger)row inSection:(NSInteger)section]];
 		
 		// Use text field if visible first		
 		if ([cell.settings.key isEqualToString:field.key] && [cell getValue] != nil)

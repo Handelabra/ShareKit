@@ -158,7 +158,7 @@
 + (SHKItem *)itemFromDictionary:(NSDictionary *)dictionary
 {
 	SHKItem *item = [[SHKItem alloc] init];
-	item.shareType = [[dictionary objectForKey:@"shareType"] intValue];	
+	item.shareType = (SHKShareType)[[dictionary objectForKey:@"shareType"] intValue];	
 	
 	if ([dictionary objectForKey:@"URL"] != nil)
 		item.URL = [NSURL URLWithString:[dictionary objectForKey:@"URL"]];

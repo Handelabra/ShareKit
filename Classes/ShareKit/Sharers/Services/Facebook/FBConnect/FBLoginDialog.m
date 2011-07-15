@@ -106,7 +106,7 @@ static NSString* kLoginURL = @"http://www.facebook.com/login.php";
 
 - (void)request:(FBRequest*)request didLoad:(id)result {
   NSDictionary* object = result;
-  FBUID uid = [[object objectForKey:@"uid"] longLongValue];
+  FBUID uid = (FBUID)[[object objectForKey:@"uid"] longLongValue];
   NSString* sessionKey = [object objectForKey:@"session_key"];
   NSString* sessionSecret = [object objectForKey:@"secret"];
   NSTimeInterval expires = [[object objectForKey:@"expires"] floatValue];

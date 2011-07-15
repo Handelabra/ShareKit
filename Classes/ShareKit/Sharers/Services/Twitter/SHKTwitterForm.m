@@ -170,7 +170,7 @@
 		[self layoutCounter];
 	}
 	
-	int count = (hasAttachment?115:140) - textView.text.length;
+	int count = (int)((hasAttachment?115:140) - textView.text.length);
 	counter.text = [NSString stringWithFormat:@"%@%i", hasAttachment ? @"Image + ":@"" , count];
 	counter.textColor = count >= 0 ? [UIColor blackColor] : [UIColor redColor];
 }

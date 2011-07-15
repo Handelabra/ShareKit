@@ -103,8 +103,8 @@
 		
 	if (!self.tableView.editing || animated)
 	{
-		int s = 0;
-		int r = 0;
+		NSUInteger s = 0;
+		NSUInteger r = 0;
 		
 		// Use temp objects so we can mutate as we are enumerating
 		NSMutableArray *sectionCopy;
@@ -122,7 +122,7 @@
 			{
 				if ([exclusions objectForKey:[row objectForKey:@"className"]])
 				{
-					[excluded addObject:[NSIndexPath indexPathForRow:r inSection:s]];
+					[excluded addObject:[NSIndexPath indexPathForRow:(NSInteger)r inSection:(NSInteger)s]];
 					
 					if (!self.tableView.editing)
 						[indexes addIndex:r];
@@ -190,13 +190,13 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView 
 {
-    return tableData.count;
+    return (NSInteger)tableData.count;
 }
 
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section 
 {
-    return [[tableData objectAtIndex:section] count];
+    return (NSInteger)[(NSMutableArray*)[tableData objectAtIndex:(NSUInteger)section] count];
 }
 
 
@@ -271,12 +271,12 @@
 
 - (NSDictionary *)rowDataAtIndexPath:(NSIndexPath *)indexPath
 {
-	return [[tableData objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
+	return [[tableData objectAtIndex:(NSUInteger)indexPath.section] objectAtIndex:(NSUInteger)indexPath.row];
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
 {
-	if ([[tableData objectAtIndex:section] count])
+	if ((NSInteger)[(NSMutableArray*)[tableData objectAtIndex:(NSUInteger)section] count])
 	{
 		if (section == 0)
 			return SHKLocalizedString(@"Actions");

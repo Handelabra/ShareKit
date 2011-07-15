@@ -420,7 +420,7 @@ typedef unsigned int NSUInteger;
     writeLength = strlen(UTF8String);
 	
 	size_t __unused actualWrittenLength;
-	actualWrittenLength = [outputStream write:(uint8_t *)UTF8String maxLength:writeLength];
+	actualWrittenLength = (size_t)[outputStream write:(uint8_t *)UTF8String maxLength:writeLength];
     NSAssert(actualWrittenLength == writeLength, @"Must write multipartBegin");
 	
     // open the input stream
@@ -431,13 +431,13 @@ typedef unsigned int NSUInteger;
 
     [inImageStream open];
     while ([inImageStream hasBytesAvailable]) {
-        if (!(readSize = [inImageStream read:buffer maxLength:bufferSize])) {
+        if (!(readSize = (size_t)[inImageStream read:buffer maxLength:bufferSize])) {
             break;
         }
         
 		
 //		size_t __unused actualWrittenLength;
-		actualWrittenLength = [outputStream write:buffer maxLength:readSize];
+		actualWrittenLength = (size_t)[outputStream write:buffer maxLength:readSize];
         NSAssert (actualWrittenLength == readSize, @"Must completes the writing");
     }
     
@@ -447,7 +447,7 @@ typedef unsigned int NSUInteger;
     
     UTF8String = [multipartEnd UTF8String];
     writeLength = strlen(UTF8String);
-	actualWrittenLength = [outputStream write:(uint8_t *)UTF8String maxLength:writeLength];
+	actualWrittenLength = (size_t)[outputStream write:(uint8_t *)UTF8String maxLength:writeLength];
     NSAssert(actualWrittenLength == writeLength, @"Must write multipartBegin");
     [outputStream close];
     
@@ -466,10 +466,10 @@ typedef unsigned int NSUInteger;
     fileSize = [fileSizeNumber intValue];
 #else
     if ([fileSizeNumber respondsToSelector:@selector(integerValue)]) {
-        fileSize = [fileSizeNumber integerValue];                    
+        fileSize = [fileSizeNumber unsignedIntegerValue];                    
     }
     else {
-        fileSize = [fileSizeNumber intValue];                    
+        fileSize = [fileSizeNumber unsignedIntValue];                    
     }                
 #endif
     

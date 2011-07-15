@@ -235,10 +235,10 @@ void LFHRReadStreamClientCallBack(CFReadStreamRef stream, CFStreamEventType even
                 _expectedDataLength = [(NSString *)contentLengthString intValue];
 #else
                 if ([(NSString *)contentLengthString respondsToSelector:@selector(integerValue)]) {
-                    _expectedDataLength = [(NSString *)contentLengthString integerValue];
+                    _expectedDataLength = (NSUInteger)[(NSString *)contentLengthString integerValue];
                 }
                 else {
-                    _expectedDataLength = [(NSString *)contentLengthString intValue];
+                    _expectedDataLength = (NSUInteger)[(NSString *)contentLengthString intValue];
                 }
 #endif
 
@@ -297,17 +297,17 @@ void LFHRReadStreamClientCallBack(CFReadStreamRef stream, CFStreamEventType even
     }
 
     // sets a 25,600-byte block, approximately for 256 KBPS connection
-    CFIndex bytesRead = CFReadStreamRead(_readStream, _readBuffer, _readBufferSize);
+    CFIndex bytesRead = CFReadStreamRead(_readStream, _readBuffer, (CFIndex)_readBufferSize);
     if (bytesRead > 0) {
         if ([_delegate respondsToSelector:@selector(httpRequest:writeReceivedBytes:size:expectedTotal:)]) {
-            [_delegate httpRequest:self writeReceivedBytes:_readBuffer size:bytesRead expectedTotal:_expectedDataLength];
+            [_delegate httpRequest:self writeReceivedBytes:_readBuffer size:(NSUInteger)bytesRead expectedTotal:_expectedDataLength];
 
-            _lastReceivedBytes += bytesRead;
+            _lastReceivedBytes += (unsigned long)bytesRead;
             _lastReceivedDataUpdateTime = [NSDate timeIntervalSinceReferenceDate];
 
         }
         else {
-            [_receivedData appendBytes:_readBuffer length:bytesRead];
+            [_receivedData appendBytes:_readBuffer length:(NSUInteger)bytesRead];
             _lastReceivedBytes = [_receivedData length];
             _lastReceivedDataUpdateTime = [NSDate timeIntervalSinceReferenceDate];
 
@@ -350,10 +350,10 @@ void LFHRReadStreamClientCallBack(CFReadStreamRef stream, CFStreamEventType even
 				_expectedDataLength = [(NSString *)contentLengthString intValue];
 	#else
 				if ([(NSString *)contentLengthString respondsToSelector:@selector(integerValue)]) {
-					_expectedDataLength = [(NSString *)contentLengthString integerValue];
+					_expectedDataLength = (NSUInteger)[(NSString *)contentLengthString integerValue];
 				}
 				else {
-					_expectedDataLength = [(NSString *)contentLengthString intValue];
+					_expectedDataLength = (NSUInteger)[(NSString *)contentLengthString intValue];
 				}
 	#endif
 
@@ -585,7 +585,7 @@ void LFHRReadStreamClientCallBack(CFReadStreamRef stream, CFStreamEventType even
 		BOOL isReentrant = (_synchronousMessagePort != nil);
 		
 		if (!isReentrant) {
-			_synchronousMessagePort = [[NSPort port] retain];
+			_synchronousMessagePort = (NSMessagePort*)[[NSPort port] retain];
 			[currentRunLoop addPort:_synchronousMessagePort forMode:currentMode];
 		}
 		

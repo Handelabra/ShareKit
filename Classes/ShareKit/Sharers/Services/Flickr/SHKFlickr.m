@@ -55,7 +55,7 @@ NSString *kSetImagePropertiesStep = @"kSetImagePropertiesStep";
 
 - (BOOL)isAuthorized 
 {
-	return [self.flickrContext.authToken length];
+	return ([self.flickrContext.authToken length] > 0);
 }
 
 - (OFFlickrAPIContext *)flickrContext

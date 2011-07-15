@@ -90,7 +90,7 @@
 	// Sharers
 	if (buttonIndex >= 0 && (NSUInteger)buttonIndex < sharers.count)
 	{
-		[NSClassFromString([sharers objectAtIndex:buttonIndex]) performSelector:@selector(shareItem:) withObject:item];
+		[NSClassFromString([sharers objectAtIndex:(NSUInteger)buttonIndex]) performSelector:@selector(shareItem:) withObject:item];
 	}
 	
 	// More

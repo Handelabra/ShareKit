@@ -78,7 +78,7 @@
 		self.textField.secureTextEntry = settings.type == SHKFormFieldTypePassword;
 		
 		textField.frame = CGRectMake(labelWidth + SHK_FORM_CELL_PAD_LEFT, 
-									 2 + round(self.contentView.bounds.size.height/2 - textField.bounds.size.height/2),
+									 (CGFloat)(2 + round(self.contentView.bounds.size.height/2 - textField.bounds.size.height/2)),
 									 self.contentView.bounds.size.width - SHK_FORM_CELL_PAD_RIGHT - SHK_FORM_CELL_PAD_LEFT - labelWidth,
 									 textField.bounds.size.height);
 		
@@ -98,7 +98,7 @@
 		}
 		
 		toggle.frame = CGRectMake(self.contentView.bounds.size.width-toggle.bounds.size.width-SHK_FORM_CELL_PAD_RIGHT,
-								  round(self.contentView.bounds.size.height/2-toggle.bounds.size.height/2),
+								  (CGFloat)(round(self.contentView.bounds.size.height/2-toggle.bounds.size.height/2)),
 								  toggle.bounds.size.width,
 								  toggle.bounds.size.height);
 		

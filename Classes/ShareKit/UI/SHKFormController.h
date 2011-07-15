@@ -77,6 +77,6 @@
 #pragma mark -
 
 - (NSMutableDictionary *)formValues;
-- (NSMutableDictionary *)formValuesForSection:(int)section;
+- (NSMutableDictionary *)formValuesForSection:(NSUInteger)section;
 
 @end

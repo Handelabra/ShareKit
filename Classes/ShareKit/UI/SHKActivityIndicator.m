@@ -46,8 +46,8 @@ static SHKActivityIndicator *currentIndicator = nil;
 		
 		CGFloat width = 160;
 		CGFloat height = 160;
-		CGRect centeredFrame = CGRectMake(round(keyWindow.bounds.size.width/2 - width/2),
-										  round(keyWindow.bounds.size.height/2 - height/2),
+		CGRect centeredFrame = CGRectMake((CGFloat)(round(keyWindow.bounds.size.width/2 - width/2)),
+										  (CGFloat)(round(keyWindow.bounds.size.height/2 - height/2)),
 										  width,
 										  height);
 		
@@ -182,7 +182,7 @@ static SHKActivityIndicator *currentIndicator = nil;
 	{
 		if (centerMessageLabel == nil)
 		{
-			self.centerMessageLabel = [[[UILabel alloc] initWithFrame:CGRectMake(12,round(self.bounds.size.height/2-50/2),self.bounds.size.width-24,50)] autorelease];
+			self.centerMessageLabel = [[[UILabel alloc] initWithFrame:CGRectMake(12,(CGFloat)(round(self.bounds.size.height/2-50/2)),self.bounds.size.width-24,50)] autorelease];
 			centerMessageLabel.backgroundColor = [UIColor clearColor];
 			centerMessageLabel.opaque = NO;
 			centerMessageLabel.textColor = [UIColor whiteColor];
@@ -233,8 +233,8 @@ static SHKActivityIndicator *currentIndicator = nil;
 		self.spinner = tmpSpinner;
 		[tmpSpinner release], tmpSpinner = nil;
 
-		spinner.frame = CGRectMake(round(self.bounds.size.width/2 - spinner.frame.size.width/2),
-								round(self.bounds.size.height/2 - spinner.frame.size.height/2),
+		spinner.frame = CGRectMake((CGFloat)(round(self.bounds.size.width/2 - spinner.frame.size.width/2)),
+								(CGFloat)(round(self.bounds.size.height/2 - spinner.frame.size.height/2)),
 								spinner.frame.size.width,
 								spinner.frame.size.height);
 	}
@@ -262,16 +262,16 @@ static SHKActivityIndicator *currentIndicator = nil;
 	}
 	
 	if (orientation == UIDeviceOrientationPortraitUpsideDown)
-		self.transform = CGAffineTransformRotate(CGAffineTransformIdentity, SHKdegreesToRadians(180));	
+		self.transform = CGAffineTransformRotate(CGAffineTransformIdentity, (CGFloat)SHKdegreesToRadians(180));	
 		
 	else if (orientation == UIDeviceOrientationPortrait)
-		self.transform = CGAffineTransformRotate(CGAffineTransformIdentity, SHKdegreesToRadians(0)); 
+		self.transform = CGAffineTransformRotate(CGAffineTransformIdentity, (CGFloat)SHKdegreesToRadians(0)); 
 	
 	else if (orientation == UIDeviceOrientationLandscapeLeft)
-		self.transform = CGAffineTransformRotate(CGAffineTransformIdentity, SHKdegreesToRadians(90));	
+		self.transform = CGAffineTransformRotate(CGAffineTransformIdentity, (CGFloat)SHKdegreesToRadians(90));	
 	
 	else if (orientation == UIDeviceOrientationLandscapeRight)
-		self.transform = CGAffineTransformRotate(CGAffineTransformIdentity, SHKdegreesToRadians(-90));
+		self.transform = CGAffineTransformRotate(CGAffineTransformIdentity, (CGFloat)SHKdegreesToRadians(-90));
 	
 	if (animated)
 		[UIView commitAnimations];
