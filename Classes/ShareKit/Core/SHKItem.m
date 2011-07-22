@@ -100,7 +100,7 @@
 + (SHKItem *)images:(NSArray *)images title:(NSString *)title
 {
 	SHKItem *item = [[SHKItem alloc] init];
-	item.shareType = SHKShareTypeImage;
+	item.shareType = SHKShareTypeImages;
 	item.images = images;
 	item.title = title;
 	
