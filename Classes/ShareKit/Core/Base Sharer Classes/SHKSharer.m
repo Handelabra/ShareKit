@@ -715,20 +715,23 @@
 #pragma mark -
 #pragma mark Delegate Notifications
 
+// Post notifications before calling delegate methods in case delegate methods
+// do any memory management.
+
 - (void)sendDidStart
 {		
+	[[NSNotificationCenter defaultCenter] postNotificationName:@"SHKSendDidStartNotification" object:self];
+
 	if ([shareDelegate respondsToSelector:@selector(sharerStartedSending:)])
 		[shareDelegate performSelector:@selector(sharerStartedSending:) withObject:self];	
-	
-	[[NSNotificationCenter defaultCenter] postNotificationName:@"SHKSendDidStartNotification" object:self];
 }
 
 - (void)sendDidFinish
 {	
+	[[NSNotificationCenter defaultCenter] postNotificationName:@"SHKSendDidFinish" object:self];
+
 	if ([shareDelegate respondsToSelector:@selector(sharerFinishedSending:)])
 		[shareDelegate performSelector:@selector(sharerFinishedSending:) withObject:self];
-	
-	[[NSNotificationCenter defaultCenter] postNotificationName:@"SHKSendDidFinish" object:self];
 }
 
 - (void)sendDidFailShouldRelogin
@@ -745,18 +748,18 @@
 {
 	self.lastError = error;
 		
+	[[NSNotificationCenter defaultCenter] postNotificationName:@"SHKSendDidFailWithError" object:self];
+
 	if ([shareDelegate respondsToSelector:@selector(sharer:failedWithError:shouldRelogin:)])
 		[(SHKSharer *)shareDelegate sharer:self failedWithError:error shouldRelogin:shouldRelogin];
-	
-	[[NSNotificationCenter defaultCenter] postNotificationName:@"SHKSendDidFailWithError" object:self];
 }
 
 - (void)sendDidCancel
 {
+	[[NSNotificationCenter defaultCenter] postNotificationName:@"SHKSendDidCancel" object:self];
+
 	if ([shareDelegate respondsToSelector:@selector(sharerCancelledSending:)])
 		[shareDelegate performSelector:@selector(sharerCancelledSending:) withObject:self];	
-	
-	[[NSNotificationCenter defaultCenter] postNotificationName:@"SHKSendDidCancel" object:self];
 }
 
 
