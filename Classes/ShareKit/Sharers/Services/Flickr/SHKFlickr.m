@@ -33,6 +33,13 @@ NSString *kGetAuthTokenStep = @"kGetAuthTokenStep";
 NSString *kCheckTokenStep = @"kCheckTokenStep";
 NSString *kUploadImageStep = @"kUploadImageStep";
 NSString *kSetImagePropertiesStep = @"kSetImagePropertiesStep";
+NSString *kGetPrivacy = @"kGetPrivacy";
+
+@interface SHKFlickr ()
+
+- (NSDictionary*) privacySettingsDictionary;
+
+@end
 
 @implementation SHKFlickr
 
@@ -119,7 +126,7 @@ NSString *kSetImagePropertiesStep = @"kSetImagePropertiesStep";
 	NSData *JPEGData = UIImageJPEGRepresentation(item.image, 1.0);
 	
 	self.flickrRequest.sessionInfo = kUploadImageStep;
-	[self.flickrRequest uploadImageStream:[NSInputStream inputStreamWithData:JPEGData] suggestedFilename:item.title MIMEType:@"image/jpeg" arguments:[NSDictionary dictionaryWithObjectsAndKeys:@"0", @"is_public", nil]];	
+	[self.flickrRequest uploadImageStream:[NSInputStream inputStreamWithData:JPEGData] suggestedFilename:item.title MIMEType:@"image/jpeg" arguments:[self privacySettingsDictionary]];	
 }
 
 - (NSURL *)authorizeCallbackURL {
@@ -177,8 +184,25 @@ NSString *kSetImagePropertiesStep = @"kSetImagePropertiesStep";
         flickrRequest.sessionInfo = kSetImagePropertiesStep;
         [flickrRequest callAPIMethodWithPOST:@"flickr.photos.setMeta" arguments:[NSDictionary dictionaryWithObjectsAndKeys:photoID, @"photo_id", item.title, @"title", nil, @"description", nil]];        		        
 	}
+    else if (inRequest.sessionInfo == kGetPrivacy)
+    {
+        if (inResponseDictionary != nil)
+        {
+            NSDictionary *person = (NSDictionary*)[inResponseDictionary valueForKey:@"person"];
+            if (person != nil)
+            {
+                NSString *privacy = (NSString*)[person valueForKey:@"privacy"];
+                if (privacy != nil)
+                {
+                    privacySetting = (NSUInteger)[privacy intValue];
+                }
+            }
+        }
+        [self sendPhoto];
+    }
 	else if (inRequest.sessionInfo == kSetImagePropertiesStep) {
-		
+		[[SHKActivityIndicator currentIndicator] displayCompleted:SHKLocalizedString(@"Uploaded to %@", self.title)];
+        
 		[self sendDidFinish];
 	}
 	else {
@@ -191,15 +215,23 @@ NSString *kSetImagePropertiesStep = @"kSetImagePropertiesStep";
 		}
 		else if (inRequest.sessionInfo == kCheckTokenStep) {
 			self.flickrUserName = [inResponseDictionary valueForKeyPath:@"auth.user.username"];
+            
+            [[SHKActivityIndicator currentIndicator] displayCompleted:SHKLocalizedString(@"Logged in!")];
 			
-			[self sendPhoto];
+            flickrRequest.sessionInfo = kGetPrivacy;
+            [flickrRequest callAPIMethodWithPOST:@"flickr.prefs.getPrivacy" arguments:nil];
 		}
 	}
 }
 
 - (void)flickrAPIRequest:(OFFlickrAPIRequest *)inRequest didFailWithError:(NSError *)inError
 {
-	if (inRequest.sessionInfo == kGetAuthTokenStep) {
+	if (inRequest.sessionInfo == kGetPrivacy)
+    {
+        // Ignore error. Just fall back to default non-public privacy setting.
+        return;
+    }
+    else if (inRequest.sessionInfo == kGetAuthTokenStep) {
 	}
 	else if (inRequest.sessionInfo == kCheckTokenStep) {
 		[self setAndStoreFlickrAuthToken:nil];
@@ -214,6 +246,50 @@ NSString *kSetImagePropertiesStep = @"kSetImagePropertiesStep";
 	[flickrRequest release];
 	[flickrUserName release];
     [super dealloc];
+}
+
+#pragma mark - Privacy methods
+
+// See: http://www.flickr.com/services/api/flickr.prefs.getPrivacy.html
+// Set is_public, is_friend, is_family for upload based on privacySetting.
+- (NSDictionary*) privacySettingsDictionary
+{
+    NSMutableDictionary *privacySettingsDictionary = [NSMutableDictionary dictionaryWithCapacity:1];
+    
+    switch (privacySetting)
+    {
+        case 1:
+            [privacySettingsDictionary setValue:@"1" forKey:@"is_public"];
+            [privacySettingsDictionary setValue:@"1" forKey:@"is_friend"];
+            [privacySettingsDictionary setValue:@"1" forKey:@"is_family"];
+            break;
+            
+        case 2:
+            [privacySettingsDictionary setValue:@"0" forKey:@"is_public"];
+            [privacySettingsDictionary setValue:@"1" forKey:@"is_friend"];
+            [privacySettingsDictionary setValue:@"0" forKey:@"is_family"];
+            break;
+            
+        case 3:
+            [privacySettingsDictionary setValue:@"0" forKey:@"is_public"];
+            [privacySettingsDictionary setValue:@"0" forKey:@"is_friend"];
+            [privacySettingsDictionary setValue:@"1" forKey:@"is_family"];
+            break;
+            
+        case 4:
+            [privacySettingsDictionary setValue:@"0" forKey:@"is_public"];
+            [privacySettingsDictionary setValue:@"1" forKey:@"is_friend"];
+            [privacySettingsDictionary setValue:@"1" forKey:@"is_family"];
+            break;
+            
+        default:
+            [privacySettingsDictionary setValue:@"0" forKey:@"is_public"];
+            [privacySettingsDictionary setValue:@"0" forKey:@"is_friend"];
+            [privacySettingsDictionary setValue:@"0" forKey:@"is_family"];
+            break;
+    }
+    
+    return privacySettingsDictionary;
 }
 
 @end

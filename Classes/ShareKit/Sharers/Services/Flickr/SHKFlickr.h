@@ -35,6 +35,7 @@
     OFFlickrAPIContext *flickrContext;
 	OFFlickrAPIRequest *flickrRequest;
 	NSString *flickrUserName;
+    NSUInteger privacySetting;
 }
 
 @property (nonatomic, readonly) OFFlickrAPIContext *flickrContext;
