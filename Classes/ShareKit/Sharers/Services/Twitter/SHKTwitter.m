@@ -223,7 +223,15 @@
 	[rootView view];
 	
 	rootView.textView.text = [item customValueForKey:@"status"];
-	rootView.hasAttachment = item.image != nil;
+	rootView.attachmentCount = 0;
+    if (item.image != nil)
+    {
+        rootView.attachmentCount += 1;
+    }
+    if (item.images != nil)
+    {
+        rootView.attachmentCount += item.images.count;
+    }
 	
 	[self pushViewController:rootView animated:NO];
 	

@@ -33,13 +33,13 @@
 	id delegate;
 	UITextView *textView;
 	UILabel *counter;
-	BOOL hasAttachment;
+	NSUInteger attachmentCount;
 }
 
 @property (nonatomic, retain) id delegate;
 @property (nonatomic, retain) UITextView *textView;
 @property (nonatomic, retain) UILabel *counter;
-@property BOOL hasAttachment;
+@property (nonatomic, assign) NSUInteger attachmentCount;
 
 - (void)layoutCounter;
 - (void)save;

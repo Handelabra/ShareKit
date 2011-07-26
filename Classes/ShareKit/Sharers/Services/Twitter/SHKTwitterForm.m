@@ -35,7 +35,7 @@
 @synthesize delegate;
 @synthesize textView;
 @synthesize counter;
-@synthesize hasAttachment;
+@synthesize attachmentCount;
 
 - (void)dealloc 
 {
@@ -170,8 +170,8 @@
 		[self layoutCounter];
 	}
 	
-	int count = (int)((hasAttachment?115:140) - textView.text.length);
-	counter.text = [NSString stringWithFormat:@"%@%i", hasAttachment ? @"Image + ":@"" , count];
+	int count = (int)((attachmentCount>0?(140-(25*attachmentCount)):140) - textView.text.length);
+	counter.text = [NSString stringWithFormat:@"%@%i", attachmentCount>0 ? [NSString stringWithFormat:@"%@ + ", attachmentCount>1 ? SHKLocalizedString(@"Images") : SHKLocalizedString(@"Image")]:@"" , count];
 	counter.textColor = count >= 0 ? [UIColor blackColor] : [UIColor redColor];
 }
 
@@ -208,7 +208,7 @@
 
 - (void)save
 {	
-	if (textView.text.length > (hasAttachment?115:140))
+	if (textView.text.length > (attachmentCount>0?(140-(25*attachmentCount)):140))
 	{
 		[[[[UIAlertView alloc] initWithTitle:SHKLocalizedString(@"Message is too long")
 									 message:SHKLocalizedString(@"Twitter posts can only be 140 characters in length.")
