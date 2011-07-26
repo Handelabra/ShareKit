@@ -44,6 +44,7 @@ NSString *kGetPrivacy = @"kGetPrivacy";
 @implementation SHKFlickr
 
 @synthesize flickrContext, flickrUserName;
+@synthesize sendImageCount;
 
 + (NSString *)sharerTitle
 {
@@ -53,6 +54,11 @@ NSString *kGetPrivacy = @"kGetPrivacy";
 + (BOOL)canShareImage
 {
 	return YES;
+}
+
++ (BOOL)canShareImages
+{
+    return YES;
 }
 
 + (BOOL)canShare
@@ -120,13 +126,32 @@ NSString *kGetPrivacy = @"kGetPrivacy";
 }
 
 - (void)sendPhoto {
+    
+    NSMutableArray *images = [NSMutableArray array];
+    if (item.image != nil)
+    {
+        [images addObject:item.image];
+    }
+    if (item.images != nil && item.images.count > 0)
+    {
+        [images addObjectsFromArray:item.images];
+    }
+    self.sendImageCount = 0;
 	
-	[self sendDidStart];
-	
-	NSData *JPEGData = UIImageJPEGRepresentation(item.image, 1.0);
-	
-	self.flickrRequest.sessionInfo = kUploadImageStep;
-	[self.flickrRequest uploadImageStream:[NSInputStream inputStreamWithData:JPEGData] suggestedFilename:item.title MIMEType:@"image/jpeg" arguments:[self privacySettingsDictionary]];	
+    for (UIImage *image in images)
+    {
+        if (self.sendImageCount == 0)
+        {
+            [self sendDidStart];
+        }
+        
+        NSData *JPEGData = UIImageJPEGRepresentation(image, 1.0);
+        
+        self.flickrRequest.sessionInfo = kUploadImageStep;
+        [self.flickrRequest uploadImageStream:[NSInputStream inputStreamWithData:JPEGData] suggestedFilename:item.title MIMEType:@"image/jpeg" arguments:[self privacySettingsDictionary]];
+        
+        self.sendImageCount++;
+    }
 }
 
 - (NSURL *)authorizeCallbackURL {
@@ -201,9 +226,13 @@ NSString *kGetPrivacy = @"kGetPrivacy";
         [self sendPhoto];
     }
 	else if (inRequest.sessionInfo == kSetImagePropertiesStep) {
-		[[SHKActivityIndicator currentIndicator] displayCompleted:SHKLocalizedString(@"Uploaded to %@", self.title)];
-        
-		[self sendDidFinish];
+        self.sendImageCount--;
+        if (self.sendImageCount == 0)
+        {
+            [[SHKActivityIndicator currentIndicator] displayCompleted:SHKLocalizedString(@"Uploaded to %@", self.title)];
+            
+            [self sendDidFinish];
+        }
 	}
 	else {
 		
@@ -226,7 +255,11 @@ NSString *kGetPrivacy = @"kGetPrivacy";
 
 - (void)flickrAPIRequest:(OFFlickrAPIRequest *)inRequest didFailWithError:(NSError *)inError
 {
-	if (inRequest.sessionInfo == kGetPrivacy)
+	if (inRequest.sessionInfo == kUploadImageStep)
+    {
+        self.sendImageCount--;
+    }
+	else if (inRequest.sessionInfo == kGetPrivacy)
     {
         // Ignore error. Just fall back to default non-public privacy setting.
         return;

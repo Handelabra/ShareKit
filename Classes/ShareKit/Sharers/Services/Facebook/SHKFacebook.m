@@ -33,6 +33,7 @@
 @synthesize session;
 @synthesize pendingFacebookAction;
 @synthesize login;
+@synthesize sendImageCount;
 
 - (void)dealloc
 {
@@ -64,6 +65,11 @@
 + (BOOL)canShareImage
 {
 	return YES;
+}
+
++ (BOOL)canShareImages
+{
+    return YES;
 }
 
 + (BOOL)canShareOffline
@@ -178,7 +184,7 @@
 		
 	}
 	
-	else if (item.shareType == SHKShareTypeImage)
+	else if (item.shareType == SHKShareTypeImage || item.shareType == SHKShareTypeImages)
 	{		
 		self.pendingFacebookAction = SHKFacebookPendingImage;
 		
@@ -193,11 +199,30 @@
 
 - (void)sendImage
 {
-	[self sendDidStart];
+    NSMutableArray *images = [NSMutableArray array];
+    if (item.image != nil)
+    {
+        [images addObject:item.image];
+    }
+    if (item.images != nil && item.images.count > 0)
+    {
+        [images addObjectsFromArray:item.images];
+    }
+    self.sendImageCount = 0;
+	
+    for (UIImage *image in images)
+    {
+        if (self.sendImageCount == 0)
+        {
+            [self sendDidStart];
+        }
 
-	[[FBRequest requestWithDelegate:self] call:@"facebook.photos.upload"
-	params:[NSDictionary dictionaryWithObjectsAndKeys:item.title, @"caption", nil]
-	dataParam:UIImageJPEGRepresentation(item.image,1.0)];
+        [[FBRequest requestWithDelegate:self] call:@"facebook.photos.upload"
+                                            params:[NSDictionary dictionaryWithObjectsAndKeys:item.title, @"caption", nil]
+                                         dataParam:UIImageJPEGRepresentation(image,1.0)];
+        
+        self.sendImageCount++;
+    }
 }
 
 - (void)dialogDidSucceed:(FBDialog*)dialog
@@ -247,13 +272,22 @@
 {
 	if ([aRequest.method isEqualToString:@"facebook.photos.upload"]) 
 	{
-		// PID is in [result objectForKey:@"pid"];
-		[self sendDidFinish];
+        self.sendImageCount--;
+        
+        if (self.sendImageCount == 0)
+        {
+            // PID is in [result objectForKey:@"pid"];
+            [self sendDidFinish];
+        }
 	}
 }
 
 - (void)request:(FBRequest*)aRequest didFailWithError:(NSError*)error 
 {
+	if ([aRequest.method isEqualToString:@"facebook.photos.upload"]) 
+	{
+        self.sendImageCount--;
+    }
 	[self sendDidFailWithError:error];
 }
 

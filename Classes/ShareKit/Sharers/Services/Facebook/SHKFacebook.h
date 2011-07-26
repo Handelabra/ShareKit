@@ -48,5 +48,6 @@ typedef enum
 @property (retain) FBSession *session;
 @property SHKFacebookPendingAction pendingFacebookAction;
 @property (retain) FBLoginDialog *login;
+@property (nonatomic, assign) NSUInteger sendImageCount;
 
 @end

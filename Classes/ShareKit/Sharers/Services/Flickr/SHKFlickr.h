@@ -40,6 +40,7 @@
 
 @property (nonatomic, readonly) OFFlickrAPIContext *flickrContext;
 @property (nonatomic, retain) NSString *flickrUserName;
+@property (nonatomic, assign) NSUInteger sendImageCount;
 
 - (void)sendPhoto;
 
