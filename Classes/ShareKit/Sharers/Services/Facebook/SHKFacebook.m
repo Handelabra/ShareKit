@@ -28,12 +28,18 @@
 #import "SHKFacebook.h"
 #import "SHKFBStreamDialog.h"
 
+@interface SHKFacebook ()
+
+- (void)sendImage:(UIImage*)image caption:(NSString*)caption;
+
+@end
+
 @implementation SHKFacebook
 
 @synthesize session;
 @synthesize pendingFacebookAction;
 @synthesize login;
-@synthesize sendImageCount;
+@synthesize sendImageIndex;
 
 - (void)dealloc
 {
@@ -199,30 +205,30 @@
 
 - (void)sendImage
 {
-    NSMutableArray *images = [NSMutableArray array];
+    UIImage *sendImage = nil;
     if (item.image != nil)
     {
-        [images addObject:item.image];
+        sendImage = item.image;
     }
-    if (item.images != nil && item.images.count > 0)
+    else if (item.images != nil && item.images.count > 0)
     {
-        [images addObjectsFromArray:item.images];
+        self.sendImageIndex = 0;
+        sendImage = [item.images objectAtIndex:self.sendImageIndex];
     }
-    self.sendImageCount = 0;
-	
-    for (UIImage *image in images)
+    
+    if (sendImage != nil)
     {
-        if (self.sendImageCount == 0)
-        {
-            [self sendDidStart];
-        }
+        [self sendDidStart];
 
-        [[FBRequest requestWithDelegate:self] call:@"facebook.photos.upload"
-                                            params:[NSDictionary dictionaryWithObjectsAndKeys:item.title, @"caption", nil]
-                                         dataParam:UIImageJPEGRepresentation(image,1.0)];
-        
-        self.sendImageCount++;
+        [self sendImage:sendImage caption:item.title];
     }
+}
+
+- (void)sendImage:(UIImage*)image caption:(NSString*)caption
+{
+    [[FBRequest requestWithDelegate:self] call:@"facebook.photos.upload"
+                                        params:[NSDictionary dictionaryWithObjectsAndKeys:caption, @"caption", nil]
+                                     dataParam:UIImageJPEGRepresentation(image,1.0)];
 }
 
 - (void)dialogDidSucceed:(FBDialog*)dialog
@@ -272,12 +278,15 @@
 {
 	if ([aRequest.method isEqualToString:@"facebook.photos.upload"]) 
 	{
-        self.sendImageCount--;
-        
-        if (self.sendImageCount == 0)
+        if (item.image != nil || (item.images != nil && self.sendImageIndex == (item.images.count-1)))
         {
             // PID is in [result objectForKey:@"pid"];
             [self sendDidFinish];
+        }
+        else
+        {
+            self.sendImageIndex++;
+            [self sendImage:[item.images objectAtIndex:self.sendImageIndex] caption:item.title];
         }
 	}
 }
@@ -286,9 +295,9 @@
 {
 	if ([aRequest.method isEqualToString:@"facebook.photos.upload"]) 
 	{
-        self.sendImageCount--;
+        self.sendImageIndex++;
     }
-	[self sendDidFailWithError:error];
+    [self sendDidFailWithError:error];
 }
 
 

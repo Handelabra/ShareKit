@@ -37,14 +37,16 @@ NSString *kGetPrivacy = @"kGetPrivacy";
 
 @interface SHKFlickr ()
 
-- (NSDictionary*) privacySettingsDictionary;
+- (void)sendPhoto:(UIImage*)photo filename:(NSString*)filename;
+- (NSDictionary*) privacySettingsForValue:(NSUInteger)privacyValue;
 
 @end
 
 @implementation SHKFlickr
 
 @synthesize flickrContext, flickrUserName;
-@synthesize sendImageCount;
+@synthesize sendImageIndex;
+@synthesize privacySettings;
 
 + (NSString *)sharerTitle
 {
@@ -126,32 +128,26 @@ NSString *kGetPrivacy = @"kGetPrivacy";
 }
 
 - (void)sendPhoto {
-    
-    NSMutableArray *images = [NSMutableArray array];
+	
     if (item.image != nil)
     {
-        [images addObject:item.image];
+        [self sendDidStart];
+        [self sendPhoto:item.image filename:item.title];
     }
-    if (item.images != nil && item.images.count > 0)
+    else if (item.images != nil)
     {
-        [images addObjectsFromArray:item.images];
+        [self sendDidStart];
+        self.sendImageIndex = 0;
+        [self sendPhoto:[item.images objectAtIndex:self.sendImageIndex] filename:item.title];
     }
-    self.sendImageCount = 0;
+}
+
+- (void)sendPhoto:(UIImage*)photo filename:(NSString*)filename
+{
+	NSData *JPEGData = UIImageJPEGRepresentation(photo, 1.0);
 	
-    for (UIImage *image in images)
-    {
-        if (self.sendImageCount == 0)
-        {
-            [self sendDidStart];
-        }
-        
-        NSData *JPEGData = UIImageJPEGRepresentation(image, 1.0);
-        
-        self.flickrRequest.sessionInfo = kUploadImageStep;
-        [self.flickrRequest uploadImageStream:[NSInputStream inputStreamWithData:JPEGData] suggestedFilename:item.title MIMEType:@"image/jpeg" arguments:[self privacySettingsDictionary]];
-        
-        self.sendImageCount++;
-    }
+	self.flickrRequest.sessionInfo = kUploadImageStep;
+	[self.flickrRequest uploadImageStream:[NSInputStream inputStreamWithData:JPEGData] suggestedFilename:filename MIMEType:@"image/jpeg" arguments:self.privacySettings];	
 }
 
 - (NSURL *)authorizeCallbackURL {
@@ -202,7 +198,7 @@ NSString *kGetPrivacy = @"kGetPrivacy";
 
 - (void)flickrAPIRequest:(OFFlickrAPIRequest *)inRequest didCompleteWithResponse:(NSDictionary *)inResponseDictionary
 {
-	if (inRequest.sessionInfo == kUploadImageStep) {
+    if (inRequest.sessionInfo == kUploadImageStep) {
 		
         NSString *photoID = [[inResponseDictionary valueForKeyPath:@"photoid"] textContent];
 		
@@ -219,19 +215,23 @@ NSString *kGetPrivacy = @"kGetPrivacy";
                 NSString *privacy = (NSString*)[person valueForKey:@"privacy"];
                 if (privacy != nil)
                 {
-                    privacySetting = (NSUInteger)[privacy intValue];
+                    self.privacySettings = [self privacySettingsForValue:(NSUInteger)[privacy intValue]];
                 }
             }
         }
         [self sendPhoto];
     }
 	else if (inRequest.sessionInfo == kSetImagePropertiesStep) {
-        self.sendImageCount--;
-        if (self.sendImageCount == 0)
+        if (item.image != nil || (item.images != nil && self.sendImageIndex == (item.images.count-1)))
         {
             [[SHKActivityIndicator currentIndicator] displayCompleted:SHKLocalizedString(@"Uploaded to %@", self.title)];
             
             [self sendDidFinish];
+        }
+        else
+        {
+            self.sendImageIndex += 1;
+            [self sendPhoto:[item.images objectAtIndex:self.sendImageIndex] filename:item.title];
         }
 	}
 	else {
@@ -247,19 +247,24 @@ NSString *kGetPrivacy = @"kGetPrivacy";
             
             [[SHKActivityIndicator currentIndicator] displayCompleted:SHKLocalizedString(@"Logged in!")];
 			
-            flickrRequest.sessionInfo = kGetPrivacy;
-            [flickrRequest callAPIMethodWithPOST:@"flickr.prefs.getPrivacy" arguments:nil];
+            // We don't use property here because accessor uses lazy eval to generate
+            // default privacy settings.
+            if (privacySettings == nil)
+            {
+                flickrRequest.sessionInfo = kGetPrivacy;
+                [flickrRequest callAPIMethodWithPOST:@"flickr.prefs.getPrivacy" arguments:nil];
+            }
+            else
+            {
+                [self sendPhoto];
+            }
 		}
 	}
 }
 
 - (void)flickrAPIRequest:(OFFlickrAPIRequest *)inRequest didFailWithError:(NSError *)inError
 {
-	if (inRequest.sessionInfo == kUploadImageStep)
-    {
-        self.sendImageCount--;
-    }
-	else if (inRequest.sessionInfo == kGetPrivacy)
+	if (inRequest.sessionInfo == kGetPrivacy)
     {
         // Ignore error. Just fall back to default non-public privacy setting.
         return;
@@ -278,18 +283,28 @@ NSString *kGetPrivacy = @"kGetPrivacy";
     [flickrContext release];
 	[flickrRequest release];
 	[flickrUserName release];
+    [privacySettings release], privacySettings = nil;
     [super dealloc];
 }
 
 #pragma mark - Privacy methods
 
+- (NSDictionary*) privacySettings
+{
+    if (privacySettings == nil)
+    {
+        privacySettings = [[self privacySettingsForValue:5] retain];
+    }
+    return privacySettings;
+}
+
 // See: http://www.flickr.com/services/api/flickr.prefs.getPrivacy.html
 // Set is_public, is_friend, is_family for upload based on privacySetting.
-- (NSDictionary*) privacySettingsDictionary
+- (NSDictionary*) privacySettingsForValue:(NSUInteger)privacyValue
 {
-    NSMutableDictionary *privacySettingsDictionary = [NSMutableDictionary dictionaryWithCapacity:1];
+    NSMutableDictionary *privacySettingsDictionary = [[NSMutableDictionary alloc] initWithCapacity:3];
     
-    switch (privacySetting)
+    switch (privacyValue)
     {
         case 1:
             [privacySettingsDictionary setValue:@"1" forKey:@"is_public"];
@@ -322,7 +337,7 @@ NSString *kGetPrivacy = @"kGetPrivacy";
             break;
     }
     
-    return privacySettingsDictionary;
+    return [privacySettingsDictionary autorelease];
 }
 
 @end

@@ -35,12 +35,12 @@
     OFFlickrAPIContext *flickrContext;
 	OFFlickrAPIRequest *flickrRequest;
 	NSString *flickrUserName;
-    NSUInteger privacySetting;
 }
 
 @property (nonatomic, readonly) OFFlickrAPIContext *flickrContext;
 @property (nonatomic, retain) NSString *flickrUserName;
-@property (nonatomic, assign) NSUInteger sendImageCount;
+@property (nonatomic, assign) NSUInteger sendImageIndex;
+@property (nonatomic, retain) NSDictionary *privacySettings;
 
 - (void)sendPhoto;
 
