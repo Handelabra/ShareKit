@@ -35,6 +35,7 @@
 }
 
 @property BOOL xAuth;
+@property (nonatomic, assign) NSUInteger sendImageCount;
 
 
 #pragma mark -

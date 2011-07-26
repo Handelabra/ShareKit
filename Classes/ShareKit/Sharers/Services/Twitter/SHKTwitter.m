@@ -31,9 +31,16 @@
 #import "SHKTwitter.h"
 #import "OAAsynchronousDataFetcher.h"
 
+@interface SHKTwitter ()
+
+- (NSData*) compressedImageData:(UIImage*)image;
+
+@end
+
 @implementation SHKTwitter
 
 @synthesize xAuth;
+@synthesize sendImageCount;
 
 - (id)init
 {
@@ -47,14 +54,13 @@
 		// XAUTH
 		self.xAuth = SHKTwitterUseXAuth?YES:NO;
 		
-		
 		// -- //
 		
 		
 		// You do not need to edit these, they are the same for everyone
 	    self.authorizeURL = [NSURL URLWithString:@"https://twitter.com/oauth/authorize"];
 	    self.requestURL = [NSURL URLWithString:@"https://twitter.com/oauth/request_token"];
-	    self.accessURL = [NSURL URLWithString:@"https://twitter.com/oauth/access_token"]; 
+	    self.accessURL = [NSURL URLWithString:@"https://twitter.com/oauth/access_token"];
 	}	
 	return self;
 }
@@ -84,6 +90,10 @@
 	return YES;
 }
 
++ (BOOL)canShareImages
+{
+    return YES;
+}
 
 #pragma mark -
 #pragma mark Configuration : Dynamic Enable
@@ -191,7 +201,7 @@
 		[self shortenURL];
 	}
 	
-	else if (item.shareType == SHKShareTypeImage)
+	else if (item.shareType == SHKShareTypeImage || item.shareType == SHKShareTypeImages)
 	{
 		[item setCustomValue:item.title forKey:@"status"];
 		[self showTwitterForm];
@@ -304,9 +314,10 @@
 	
 	else
 	{	
-		if (item.shareType == SHKShareTypeImage) {
+		if (item.shareType == SHKShareTypeImage || item.shareType == SHKShareTypeImages) {
 			[self sendImage];
-		} else {
+		}
+        else {
 			[self sendStatus];
 		}
 		
@@ -432,65 +443,69 @@
 		[oRequest setValue:oauthHeader forHTTPHeaderField:@"X-Verify-Credentials-Authorization"];
 	}
 	
-	CGFloat compression = 0.9f;
-	NSData *imageData = UIImageJPEGRepresentation([item image], compression);
-	
-	// TODO
-	// Note from Nate to creator of sendImage method - This seems like it could be a source of sluggishness.
-	// For example, if the image is large (say 3000px x 3000px for example), it would be better to resize the image
-	// to an appropriate size (max of img.ly) and then start trying to compress.
-	
-	while ([imageData length] > 700000 && compression > 0.1) {
-		// NSLog(@"Image size too big, compression more: current data size: %d bytes",[imageData length]);
-		compression -= 0.1;
-		imageData = UIImageJPEGRepresentation([item image], compression);
-		
-	}
-	
-	NSString *boundary = @"0xKhTmLbOuNdArY";
-	NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@",boundary];
-	[oRequest setValue:contentType forHTTPHeaderField:@"Content-Type"];
-	
-	NSMutableData *body = [NSMutableData data];
-	NSString *dispKey = @"";
-	if([item customValueForKey:@"profile_update"]){
-		dispKey = @"Content-Disposition: form-data; name=\"image\"; filename=\"upload.jpg\"\r\n";
-	} else {
-		dispKey = @"Content-Disposition: form-data; name=\"media\"; filename=\"upload.jpg\"\r\n";
-	}
-	
-	
-	[body appendData:[[NSString stringWithFormat:@"--%@\r\n",boundary] dataUsingEncoding:NSUTF8StringEncoding]];
-	[body appendData:[dispKey dataUsingEncoding:NSUTF8StringEncoding]];
-	[body appendData:[@"Content-Type: image/jpg\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
-	[body appendData:imageData];
-	[body appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
-	
-	if([item customValueForKey:@"profile_update"]){
-		// no ops
-	} else {
-		[body appendData:[[NSString stringWithFormat:@"--%@\r\n",boundary] dataUsingEncoding:NSUTF8StringEncoding]];
-		[body appendData:[[NSString stringWithString:@"Content-Disposition: form-data; name=\"message\"\r\n\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
-		[body appendData:[[item customValueForKey:@"status"] dataUsingEncoding:NSUTF8StringEncoding]];
-		[body appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];	
-	}
-	
-	[body appendData:[[NSString stringWithFormat:@"--%@--\r\n",boundary] dataUsingEncoding:NSUTF8StringEncoding]];
-	
-	// setting the body of the post to the reqeust
-	[oRequest setHTTPBody:body];
-	
-	// Notify delegate
-	[self sendDidStart];
-	
-	// Start the request
-	OAAsynchronousDataFetcher *fetcher = [OAAsynchronousDataFetcher asynchronousFetcherWithRequest:oRequest
-																						  delegate:self
-																				 didFinishSelector:@selector(sendImageTicket:didFinishWithData:)
-																				   didFailSelector:@selector(sendImageTicket:didFailWithError:)];	
-	
-	[fetcher start];
-	
+    NSMutableArray *images = [NSMutableArray array];
+    if (item.image != nil)
+    {
+        [images addObject:item.image];
+    }
+    if (item.images != nil && item.images.count > 0)
+    {
+        [images addObjectsFromArray:item.images];
+    }
+    self.sendImageCount = 0;
+    for (UIImage *image in images)
+    {
+        NSData *imageData = [self compressedImageData:image];
+        
+        NSString *boundary = @"0xKhTmLbOuNdArY";
+        NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@",boundary];
+        [oRequest setValue:contentType forHTTPHeaderField:@"Content-Type"];
+        
+        NSMutableData *body = [NSMutableData data];
+        NSString *dispKey = @"";
+        if([item customValueForKey:@"profile_update"]){
+            dispKey = @"Content-Disposition: form-data; name=\"image\"; filename=\"upload.jpg\"\r\n";
+        } else {
+            dispKey = @"Content-Disposition: form-data; name=\"media\"; filename=\"upload.jpg\"\r\n";
+        }
+        
+        
+        [body appendData:[[NSString stringWithFormat:@"--%@\r\n",boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+        [body appendData:[dispKey dataUsingEncoding:NSUTF8StringEncoding]];
+        [body appendData:[@"Content-Type: image/jpg\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+        [body appendData:imageData];
+        [body appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+        
+        if([item customValueForKey:@"profile_update"]){
+            // no ops
+        } else {
+            [body appendData:[[NSString stringWithFormat:@"--%@\r\n",boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+            [body appendData:[[NSString stringWithString:@"Content-Disposition: form-data; name=\"message\"\r\n\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
+            [body appendData:[[item customValueForKey:@"status"] dataUsingEncoding:NSUTF8StringEncoding]];
+            [body appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];	
+        }
+        
+        [body appendData:[[NSString stringWithFormat:@"--%@--\r\n",boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+        
+        // setting the body of the post to the reqeust
+        [oRequest setHTTPBody:body];
+        
+        // Notify delegate
+        if (self.sendImageCount == 0)
+        {
+            [self sendDidStart];
+        }
+        
+        // Start the request
+        OAAsynchronousDataFetcher *fetcher = [OAAsynchronousDataFetcher asynchronousFetcherWithRequest:oRequest
+                                                                                              delegate:self
+                                                                                     didFinishSelector:@selector(sendImageTicket:didFinishWithData:)
+                                                                                       didFailSelector:@selector(sendImageTicket:didFailWithError:)];	
+        
+        [fetcher start];
+        
+        self.sendImageCount++;
+    }	
 	
 	[oRequest release];
 }
@@ -498,9 +513,13 @@
 - (void)sendImageTicket:(OAServiceTicket *)ticket didFinishWithData:(NSData *)data {
 	// TODO better error handling here
 	// NSLog([[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease]);
-	
+    
 	if (ticket.didSucceed) {
-		[self sendDidFinish];
+        self.sendImageCount--;
+        if (self.sendImageCount == 0)
+        {
+            [self sendDidFinish];
+        }
 		// Finished uploading Image, now need to posh the message and url in twitter
 		NSString *dataString = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
 		NSRange startingRange = [dataString rangeOfString:@"<url>" options:NSCaseInsensitiveSearch];
@@ -512,7 +531,10 @@
 			NSString *urlString = [dataString substringWithRange:NSMakeRange(startingRange.location + startingRange.length, endingRange.location - (startingRange.location + startingRange.length))];
 			//NSLog(@"extracted string: %@",urlString);
 			[item setCustomValue:[NSString stringWithFormat:@"%@ %@",[item customValueForKey:@"status"],urlString] forKey:@"status"];
-			[self sendStatus];
+            if (self.sendImageCount == 0)
+            {
+                [self sendStatus];
+            }
 		}
 		
 		
@@ -522,6 +544,7 @@
 }
 
 - (void)sendImageTicket:(OAServiceTicket *)ticket didFailWithError:(NSError*)error {
+    self.sendImageCount--;
 	[self sendDidFailWithError:error];
 }
 
@@ -546,6 +569,26 @@
 	
 	[fetcher start];
 	[oRequest release];
+}
+
+- (NSData*) compressedImageData:(UIImage*)image
+{
+	CGFloat compression = 0.9f;
+	NSData *imageData = UIImageJPEGRepresentation(image, compression);
+	
+	// TODO
+	// Note from Nate to creator of sendImage method - This seems like it could be a source of sluggishness.
+	// For example, if the image is large (say 3000px x 3000px for example), it would be better to resize the image
+	// to an appropriate size (max of img.ly) and then start trying to compress.
+	
+	while ([imageData length] > 700000 && compression > 0.1) {
+		// NSLog(@"Image size too big, compression more: current data size: %d bytes",[imageData length]);
+		compression -= 0.1;
+		imageData = UIImageJPEGRepresentation([item image], compression);
+		
+	}
+    
+    return imageData;
 }
 
 @end
