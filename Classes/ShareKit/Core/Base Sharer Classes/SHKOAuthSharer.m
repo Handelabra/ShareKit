@@ -258,7 +258,7 @@
 	[SHK setAuthValue:accessToken.secret
 					 forKey:@"accessSecret"
 			forSharer:[self sharerId]];
-	
+
     NSString *session = nil;
     SEL sessionHandleSelector = @selector(sessionHandle);
     if ([accessToken respondsToSelector:sessionHandleSelector])
@@ -267,7 +267,7 @@
     }
     else if ([accessToken respondsToSelector:@selector(session)])
     {
-        session = [accessToken session];
+        session = [accessToken performSelector:@selector(session)];
     }
     
 	[SHK setAuthValue:session
@@ -327,11 +327,11 @@
         {
             if ([accessToken respondsToSelector:@selector(setSessionHandle:)])
             {
-                [accessToken setSessionHandle:sessionHandle];
+                [accessToken performSelector:@selector(setSessionHandle:) withObject:sessionHandle];
             }
             else if ([accessToken respondsToSelector:@selector(setSession:)])
             {
-                [accessToken setSession:sessionHandle];
+                [accessToken performSelector:@selector(setSession:) withObject:sessionHandle];
             }
         }
 		
