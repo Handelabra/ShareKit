@@ -1,0 +1,91 @@
+"Email" = "Correo electrónico";
+"Username" = "Nombre de usuario";
+"Password" = "Contraseña";
+"Follow %@" = "Seguir %@";
+"Continue" = "Continuar";
+"Share" = "Compartir";
+"More..." = "Más...";
+"Cancel" = "Cancelar";
+"Slug" = "Babosa";
+"Private" = "Privado";
+"Public" = "Público";
+"Caption" = "Nota";
+"Title" = "Título";
+"Tags" = "Rótulo";
+"Close" = "Cerrar";
+"Notes" = "Notas";
+"Note" = "Nota";
+"Share" = "Compartir";
+"Shared" = "Compartido";
+"Edit" = "Editar";
+"Actions" = "Acciones";
+"Services" = "Servicios";
+"Send to %@" = "Enviar a %@";
+"Copy" = "Copiar";
+"Copied!" = "¡Copiado!";
+"Saving to %@" = "Guardando a %@";
+"Saved!" = "¡Guardado!";
+"Offline" = "Desconectado";
+"Error" = "Error";
+"Login" = "Iniciar sesión";
+"Logging In..." = "Iniciando Sesión...";
+"Login Error" = "Error de Login";
+"Connecting..." = "Conectando...";
+
+"Shortening URL..." = "Acortando URL...";
+"Shorten URL Error" = "Error de Acortar URL";
+"We could not shorten the URL." = "No pudimos acortar el URL.";
+
+"Create a free account at %@" = "Crear una cuenta gratis en %@";
+"Create an account at %@" = "Crear una cuenta en %@";
+
+"Send to Twitter" = "Enviar a Twitter";
+
+"Message is too long" = "Mensaje es demasiado largo";
+"Twitter posts can only be 140 characters in length." = "Mensajes de Twitter pueden ser no más de 140 caracteres.";
+"Message is empty" = "Mensaje es vacío";
+"You must enter a message in order to post." = "Debes introducir un mensaje para publicar.";
+
+"Enter your message:" = "Escribir tu mensaje:";
+
+"Invalid email or password." = "Email o contraseña inválido";
+"The service encountered an error. Please try again later." = "El servicio ha detectado un error. Por favor, inténtelo de nuevo más tarde.";
+"There was a sending your post to Tumblr." = "Hubo un envío de tu mensaje a Tumblr.";
+
+"There was an error saving to Pinboard" = "Hubo un error al guardar en Pinboard";
+
+"Sorry, Instapaper did not accept your credentials. Please try again." = "Lo sentimos, Instapaper no aceptó las credenciales. Por favor, inténtarlo de nuevo.";
+"Sorry, Instapaper encountered an error. Please try again." = "Lo sentimos, Instapaper encontró un error. Por favor, inténtalo de nuevo.";
+"There was a problem saving to Instapaper." = "Hubo un problema al guardar a Instapaper.";
+
+"Incorrect username and password" = "Nombre de usuario y una contraseña incorrecta";
+"There was an error logging into Google Reader" = "Hubo un error al iniciar sesión en Google Reader";
+"There was a problem authenticating your account." = "Hubo un problema al autenticar tu cuenta.";
+"There was a problem saving your note." = "Hubo un problema al guardar la nota.";
+
+"There was a problem saving to Delicious." = "Hubo un problema al guardar en Delicious.";
+
+"Open in Safari" = "Abrir en Safari";
+"Attached: %@" = "Adjunto: %@";
+
+"You must be online to login to %@" = "Debes estar en línea para acceder a %@";
+
+"Auto Share" = "Envio automático";
+"Enable auto share to skip this step in the future." = "Habilita Envio Automático para omitir este paso en el futuro.";
+
+"You must be online in order to share with %@" = "Debes estar en línea para compartir con %@";
+"There was an error while sharing" = "Hubo un error al compartir";
+
+"Could not authenticate you. Please relogin." = "No pudo autenticarte. Por favor, iniciar la sesión de nuevo.";
+"There was a problem requesting authorization from %@" = "Hubo un problema solicitando la autorización de %@";
+"Request Error" = "Error de Solicitud";
+"There was an error while sharing" = "Hubo un error al compartir";
+
+"Authorize Error" = "Error de Autorizar";
+"There was an error while authorizing" = "Hubo un error al autorizar";
+
+"Authenticating..." = "Autenticando...";
+"There was a problem requesting access from %@" = "Hubo un problema solictando acceso de %@";
+
+"Access Error" = "Error de Acceso";
+"There was an error while sharing" = "Hubo un error al compartir";
