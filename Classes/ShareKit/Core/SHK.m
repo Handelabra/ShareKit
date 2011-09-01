@@ -185,10 +185,20 @@ BOOL SHKinit;
 	if (currentView != nil)
 	{
 		// Dismiss the modal view
-		if ([currentView parentViewController] != nil)
+        //
+        // From iOS 5.0 docs:
+        // Prior to iOS 5.0, if a view did not have a parent view controller and was being presented modally,
+        // the view controller that was presenting it would be returned. This is no longer the case.
+        // You can get the presenting view controller using the presentingViewController property.
+        UIViewController *presentingVC = [currentView parentViewController];
+        if (presentingVC == nil && [currentView respondsToSelector:@selector(presentingViewController)])
+        {
+            presentingVC = [currentView presentingViewController];
+        }
+		if (presentingVC != nil)
 		{
 			self.isDismissingView = YES;
-			[[currentView parentViewController] dismissModalViewControllerAnimated:animated];
+			[presentingVC dismissModalViewControllerAnimated:animated];
 		}
 		
 		else
