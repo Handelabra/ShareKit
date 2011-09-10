@@ -27,6 +27,7 @@
 
 #import "SHKMail.h"
 
+NSString *const SHKMailRecipientsKey = @"SHKMailRecipientsKey";
 
 @implementation MFMailComposeViewController (SHK)
 
@@ -198,6 +199,12 @@
 	
 	[mailController setSubject:item.title];
 	[mailController setMessageBody:body isHTML:YES];
+    
+    NSArray *toRecipients = [item customValueForKey:SHKMailRecipientsKey];
+    if (toRecipients != nil && toRecipients.count > 0)
+    {
+        [mailController setToRecipients:toRecipients];
+    }
 			
 	[[SHK currentHelper] showViewController:mailController];
 	

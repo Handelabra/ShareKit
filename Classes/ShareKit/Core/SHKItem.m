@@ -130,7 +130,7 @@
 
 #pragma mark -
 
-- (void)setCustomValue:(NSString *)value forKey:(NSString *)key
+- (void)setCustomValue:(id)value forKey:(NSString *)key
 {
 	if (custom == nil)
 		self.custom = [NSMutableDictionary dictionaryWithCapacity:0];
@@ -142,14 +142,14 @@
 		[custom setObject:value forKey:key];
 }
 
-- (NSString *)customValueForKey:(NSString *)key
+- (id)customValueForKey:(NSString *)key
 {
 	return [custom objectForKey:key];
 }
 
 - (BOOL)customBoolForSwitchKey:(NSString *)key
 {
-	return [[custom objectForKey:key] isEqualToString:SHKFormFieldSwitchOn];
+	return [(NSString*)[custom objectForKey:key] isEqualToString:SHKFormFieldSwitchOn];
 }
 
 

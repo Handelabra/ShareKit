@@ -29,6 +29,7 @@
 #import "SHKSharer.h"
 #import <MessageUI/MessageUI.h>
 
+extern NSString *const SHKMailRecipientsKey;
 
 @interface MFMailComposeViewController (SHK)
 - (void)SHKviewDidDisappear:(BOOL)animated;

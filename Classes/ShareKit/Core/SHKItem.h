@@ -80,8 +80,8 @@ typedef enum
 + (SHKItem *)text:(NSString *)text;
 + (SHKItem *)file:(NSData *)data filename:(NSString *)filename mimeType:(NSString *)mimeType title:(NSString *)title;
 
-- (void)setCustomValue:(NSString *)value forKey:(NSString *)key;
-- (NSString *)customValueForKey:(NSString *)key;
+- (void)setCustomValue:(id)value forKey:(NSString *)key;
+- (id)customValueForKey:(NSString *)key;
 - (BOOL)customBoolForSwitchKey:(NSString *)key;
 
 - (NSDictionary *)dictionaryRepresentation;
