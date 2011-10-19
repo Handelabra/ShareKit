@@ -26,9 +26,16 @@
 //
 
 #import "SHKFacebook.h"
-#import "SHKFBStreamDialog.h"
 
-@interface SHKFacebook ()
+static NSString *const kSHKStoredItemKey=@"kSHKStoredItem";
+static NSString *const kSHKFacebookAccessTokenKey=@"kSHKFacebookAccessToken";
+static NSString *const kSHKFacebookExpiryDateKey=@"kSHKFacebookExpiryDate";
+
+@interface SHKFacebook()
++ (Facebook*)facebook;
++ (void)flushAccessToken;
++ (NSString *)storedImagePath:(UIImage*)image;
++ (UIImage*)storedImage:(NSString*)imagePath;
 
 - (void)sendImage:(UIImage*)image caption:(NSString*)caption;
 
@@ -36,19 +43,74 @@
 
 @implementation SHKFacebook
 
-@synthesize session;
-@synthesize pendingFacebookAction;
-@synthesize login;
 @synthesize sendImageIndex;
 
 - (void)dealloc
 {
-	[session.delegates removeObject:self];
-	[session release];
-	[login release];
 	[super dealloc];
 }
 
++ (Facebook*)facebook 
+{
+  static Facebook *facebook=nil;
+  @synchronized([SHKFacebook class]) {
+    if (! facebook)
+      facebook = [[Facebook alloc] initWithAppId:SHKFacebookAppID];
+  }
+  return facebook;
+}
+
++ (void)flushAccessToken 
+{
+  Facebook *facebook = [self facebook];
+  facebook.accessToken = nil;
+  facebook.expirationDate = nil;
+  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+  [defaults removeObjectForKey:kSHKFacebookAccessTokenKey];
+  [defaults removeObjectForKey:kSHKFacebookExpiryDateKey];
+  [defaults synchronize];
+}
+
++ (NSString *)storedImagePath:(UIImage*)image
+{
+	NSFileManager *fileManager = [NSFileManager defaultManager];
+	NSArray *paths = NSSearchPathForDirectoriesInDomains( NSCachesDirectory, NSUserDomainMask, YES);
+	NSString *cache = [paths objectAtIndex:0];
+	NSString *imagePath = [cache stringByAppendingPathComponent:@"SHKImage"];
+	
+	// Check if the path exists, otherwise create it
+	if (![fileManager fileExistsAtPath:imagePath]) 
+		[fileManager createDirectoryAtPath:imagePath withIntermediateDirectories:YES attributes:nil error:nil];
+	
+  NSString *uid = [NSString stringWithFormat:@"img-%i-%i", [[NSDate date] timeIntervalSince1970], arc4random()];    
+  // store image in cache
+  NSData *imageData = UIImagePNGRepresentation(image);
+  imagePath = [imagePath stringByAppendingPathComponent:uid];
+  [imageData writeToFile:imagePath atomically:YES];
+  
+	return imagePath;
+}
+
++ (UIImage*)storedImage:(NSString*)imagePath {
+  NSData *imageData = [NSData dataWithContentsOfFile:imagePath];
+  UIImage *image = nil;
+  if (imageData) {
+    image = [UIImage imageWithData:imageData];
+  }
+  // Unlink the stored file:
+  [[NSFileManager defaultManager] removeItemAtPath:imagePath error:nil];
+  return image;
+}
+
++ (BOOL)handleOpenURL:(NSURL*)url 
+{
+  Facebook *fb = [SHKFacebook facebook];
+  if (! fb.sessionDelegate) {
+    SHKFacebook *sharer = [[[SHKFacebook alloc] init] autorelease];
+    fb.sessionDelegate = sharer;
+  }
+  return [fb handleOpenURL:url];
+}
 
 #pragma mark -
 #pragma mark Configuration : Service Defination
@@ -88,63 +150,52 @@
 
 - (BOOL)shouldAutoShare
 {
-	return YES; // FBConnect presents its own dialog
+	return YES;
 }
 
 #pragma mark -
 #pragma mark Authentication
 
 - (BOOL)isAuthorized
-{	
-	if (session == nil)
-	{
-		
-		if(!SHKFacebookUseSessionProxy){
-			self.session = [FBSession sessionForApplication:SHKFacebookKey
-													 secret:SHKFacebookSecret
-												   delegate:self];
-			
-		}else {
-			self.session = [FBSession sessionForApplication:SHKFacebookKey
-											getSessionProxy:SHKFacebookSessionProxyURL
-												   delegate:self];
-		}
-
-		
-		return [session resume];
-	}
-	
-	return [session isConnected];
+{	  
+  Facebook *facebook = [SHKFacebook facebook];
+  if ([facebook isSessionValid]) return YES;
+  
+  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+  facebook.accessToken = [defaults stringForKey:kSHKFacebookAccessTokenKey];
+  facebook.expirationDate = [defaults objectForKey:kSHKFacebookExpiryDateKey];
+  return [facebook isSessionValid];
 }
 
 - (void)promptAuthorization
 {
-	self.pendingFacebookAction = SHKFacebookPendingLogin;
-	self.login = [[[FBLoginDialog alloc] initWithSession:[self session]] autorelease];
-	[login show];
+  NSMutableDictionary *itemRep = [NSMutableDictionary dictionaryWithDictionary:[self.item dictionaryRepresentation]];
+  if (item.image)
+  {
+    [itemRep setObject:[SHKFacebook storedImagePath:item.image] forKey:@"imagePath"];
+  }
+  [[NSUserDefaults standardUserDefaults] setObject:itemRep forKey:kSHKStoredItemKey];
+#ifdef SHKFacebookLocalAppID
+  [[SHKFacebook facebook] authorize:[NSArray arrayWithObjects:@"publish_stream", 
+                                     @"offline_access", nil]
+                           delegate:self
+                         localAppId:SHKFacebookLocalAppID];
+#else
+  [[SHKFacebook facebook] authorize:[NSArray arrayWithObjects:@"publish_stream", 
+                                     @"offline_access", nil]
+                           delegate:self];
+#endif
 }
 
-- (void)authFinished:(SHKRequest *)request
+- (void)authFinished:(SHKRequest *)req
 {		
-	
 }
 
 + (void)logout
 {
-	FBSession *fbSession; 
-	
-	if(!SHKFacebookUseSessionProxy){
-		fbSession = [FBSession sessionForApplication:SHKFacebookKey
-												 secret:SHKFacebookSecret
-											   delegate:self];
-		
-	}else {
-		fbSession = [FBSession sessionForApplication:SHKFacebookKey
-										getSessionProxy:SHKFacebookSessionProxyURL
-											   delegate:self];
-	}
-
-	[fbSession logout];
+  [[NSUserDefaults standardUserDefaults] removeObjectForKey:kSHKStoredItemKey];
+  [self flushAccessToken];
+  [[self facebook] logout:nil];
 }
 
 #pragma mark -
@@ -152,100 +203,120 @@
 
 - (BOOL)send
 {			
-	if (item.shareType == SHKShareTypeURL)
+  NSMutableDictionary *params = [NSMutableDictionary dictionary];
+  NSString *actions = [NSString stringWithFormat:@"{\"name\":\"Get %@\",\"link\":\"%@\"}",  
+                       SHKMyAppName, SHKMyAppURL];
+  [params setObject:actions forKey:@"actions"];
+
+	if (item.shareType == SHKShareTypeURL && item.URL)
 	{
-		self.pendingFacebookAction = SHKFacebookPendingStatus;
-		
-		SHKFBStreamDialog* dialog = [[[SHKFBStreamDialog alloc] init] autorelease];
-		dialog.delegate = self;
-		dialog.userMessagePrompt = SHKLocalizedString(@"Enter your message:");
-		dialog.attachment = [NSString stringWithFormat:
-							 @"{\
-							 \"name\":\"%@\",\
-							 \"href\":\"%@\"\
-							 }",
-							 item.title == nil ? SHKEncodeURL(item.URL) : SHKEncode(item.title),
-							 SHKEncodeURL(item.URL)
-							 ];
-		dialog.defaultStatus = item.text;
-		dialog.actionLinks = [NSString stringWithFormat:@"[{\"text\":\"Get %@\",\"href\":\"%@\"}]",
-							  SHKEncode(SHKMyAppName),
-							  SHKEncode(SHKMyAppURL)];
-		[dialog show];
-		
+    NSString *url = [item.URL absoluteString];
+    [params setObject:url forKey:@"link"];
+    [params setObject:item.title == nil ? url : item.title
+               forKey:@"name"];    
+    if (item.text)
+      [params setObject:item.text forKey:@"message"];
+    NSString *pictureURI = [item customValueForKey:@"picture"];
+    if (pictureURI)
+      [params setObject:pictureURI forKey:@"picture"];
 	}
-	
-	else if (item.shareType == SHKShareTypeText)
+	else if (item.shareType == SHKShareTypeText && item.text)
 	{
-		self.pendingFacebookAction = SHKFacebookPendingStatus;
-		
-		SHKFBStreamDialog* dialog = [[[SHKFBStreamDialog alloc] init] autorelease];
-		dialog.delegate = self;
-		dialog.userMessagePrompt = SHKLocalizedString(@"Enter your message:");
-		dialog.defaultStatus = item.text;
-		dialog.actionLinks = [NSString stringWithFormat:@"[{\"text\":\"Get %@\",\"href\":\"%@\"}]",
-							  SHKEncode(SHKMyAppName),
-							  SHKEncode(SHKMyAppURL)];
-		[dialog show];
-		
+    [params setObject:item.text forKey:@"message"];
 	}
+
+//	else if (item.shareType == SHKShareTypeImage || item.shareType == SHKShareTypeImages)
+//	{		
+//		self.pendingFacebookAction = SHKFacebookPendingImage;
+//		
+//		FBPermissionDialog* dialog = [[[FBPermissionDialog alloc] init] autorelease];
+//		dialog.delegate = self;
+//		dialog.permission = @"photo_upload";
+//		[dialog show];		
+//	}
 	
-	else if (item.shareType == SHKShareTypeImage || item.shareType == SHKShareTypeImages)
-	{		
-		self.pendingFacebookAction = SHKFacebookPendingImage;
-		
-		FBPermissionDialog* dialog = [[[FBPermissionDialog alloc] init] autorelease];
-		dialog.delegate = self;
-		dialog.permission = @"photo_upload";
-		[dialog show];		
-	}
-	
+	else if (item.shareType == SHKShareTypeImage && item.image)
+	{	
+    if (item.title) 
+      [params setObject:item.title forKey:@"caption"];
+    if (item.text) 
+      [params setObject:item.text forKey:@"message"];
+    [params setObject:item.image forKey:@"picture"];
+    // There does not appear to be a way to add the photo 
+    // via the dialog option:
+    [[SHKFacebook facebook] requestWithGraphPath:@"me/photos"
+                                       andParams:params
+                                   andHttpMethod:@"POST"
+                                     andDelegate:self];
+    return YES;
+	} 
+  else 
+    // There is nothing to send
+    return NO;
+  
+  [[SHKFacebook facebook] dialog:@"feed"
+                       andParams:params 
+                     andDelegate:self];
 	return YES;
 }
 
-- (void)sendImage
-{
-    UIImage *sendImage = nil;
-    if (item.image != nil)
-    {
-        sendImage = item.image;
-    }
-    else if (item.images != nil && item.images.count > 0)
-    {
-        self.sendImageIndex = 0;
-        sendImage = [item.images objectAtIndex:self.sendImageIndex];
-    }
-    
-    if (sendImage != nil)
-    {
-        [self sendDidStart];
+// - (void)sendImage
+// {
+//     UIImage *sendImage = nil;
+//     if (item.image != nil)
+//     {
+//         sendImage = item.image;
+//     }
+//     else if (item.images != nil && item.images.count > 0)
+//     {
+//         self.sendImageIndex = 0;
+//         sendImage = [item.images objectAtIndex:self.sendImageIndex];
+//     }
+//     
+//     if (sendImage != nil)
+//     {
+//         [self sendDidStart];
+// 
+//         [self sendImage:sendImage caption:item.title];
+//     }
+// }
+// 
+// - (void)sendImage:(UIImage*)image caption:(NSString*)caption
+// {
+//     [[FBRequest requestWithDelegate:self] call:@"facebook.photos.upload"
+//                                         params:[NSDictionary dictionaryWithObjectsAndKeys:caption, @"caption", nil]
+//                                      dataParam:UIImageJPEGRepresentation(image,1.0)];
+// }
 
-        [self sendImage:sendImage caption:item.title];
-    }
+
+#pragma mark -
+#pragma mark FBDialogDelegate methods
+
+- (void)dialogDidComplete:(FBDialog *)dialog
+{
+  [self sendDidFinish];  
 }
 
-- (void)sendImage:(UIImage*)image caption:(NSString*)caption
+- (void)dialogCompleteWithUrl:(NSURL *)url 
 {
-    [[FBRequest requestWithDelegate:self] call:@"facebook.photos.upload"
-                                        params:[NSDictionary dictionaryWithObjectsAndKeys:caption, @"caption", nil]
-                                     dataParam:UIImageJPEGRepresentation(image,1.0)];
-}
-
-- (void)dialogDidSucceed:(FBDialog*)dialog
-{
-	if (pendingFacebookAction == SHKFacebookPendingImage)
-		[self sendImage];
-	
-	// TODO - the dialog has a SKIP button.  Skipping still calls this even though it doesn't appear to post.
-	//		- need to intercept the skip and handle it as a cancel?
-	else if (pendingFacebookAction == SHKFacebookPendingStatus)
-		[self sendDidFinish];
+  // error_code=190: user changed password or revoked access to the application,
+  // so spin the user back over to authentication :
+  NSRange errorRange = [[url absoluteString] rangeOfString:@"error_code=190"];
+  if (errorRange.location != NSNotFound) 
+  {
+    [SHKFacebook flushAccessToken];
+    [self authorize];
+  }
 }
 
 - (void)dialogDidCancel:(FBDialog*)dialog
 {
-	if (pendingFacebookAction == SHKFacebookPendingStatus)
-		[self sendDidCancel];
+  [self sendDidCancel];
+}
+
+- (void)dialog:(FBDialog *)dialog didFailWithError:(NSError *)error 
+{
+  [self sendDidFailWithError:error];
 }
 
 - (BOOL)dialog:(FBDialog*)dialog shouldOpenURLInExternalBrowser:(NSURL*)url
@@ -253,28 +324,38 @@
 	return YES;
 }
 
-
 #pragma mark FBSessionDelegate methods
 
-- (void)session:(FBSession*)session didLogin:(FBUID)uid 
+- (void)fbDidLogin 
 {
-	// Try to share again
-	if (pendingFacebookAction == SHKFacebookPendingLogin)
-	{
-		self.pendingFacebookAction = SHKFacebookPendingNone;
-		[self share];
-	}
+  NSString *accessToken = [[SHKFacebook facebook] accessToken];
+  NSDate *expiryDate = [[SHKFacebook facebook] expirationDate];
+  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+  [defaults setObject:accessToken forKey:kSHKFacebookAccessTokenKey];
+  [defaults setObject:expiryDate forKey:kSHKFacebookExpiryDateKey];
+  NSDictionary *storedItem = [defaults objectForKey:kSHKStoredItemKey];
+  if (storedItem)
+  {
+    self.item = [SHKItem itemFromDictionary:storedItem];
+    NSString *imagePath = [storedItem objectForKey:@"imagePath"];
+    if (imagePath) {
+      self.item.image = [SHKFacebook storedImage:imagePath];
+    }
+    [defaults removeObjectForKey:kSHKStoredItemKey];
+  }
+  [defaults synchronize];
+  if (self.item) 
+    [self share];
 }
-
-- (void)session:(FBSession*)session willLogout:(FBUID)uid 
-{
-	// Not handling this
-}
-
 
 #pragma mark FBRequestDelegate methods
 
-- (void)request:(FBRequest*)aRequest didLoad:(id)result 
+- (void)requestLoading:(FBRequest *)request
+{
+  [self sendDidStart];
+}
+
+- (void)request:(FBRequest *)request didLoad:(id)result
 {
 	if ([aRequest.method isEqualToString:@"facebook.photos.upload"]) 
 	{
@@ -299,7 +380,5 @@
     }
     [self sendDidFailWithError:error];
 }
-
-
 
 @end
