@@ -30,6 +30,15 @@
 #import "SHKSharer.h"
 
 @interface SHKFacebook : SHKSharer <FBSessionDelegate, FBDialogDelegate, FBRequestDelegate>
+
+/**
+ Index of image being sent when sending multiple images. The graph API does
+ support batching up to 20 photo upload requests but we don't have time to
+ figure out supporting that right now.
+ */
 @property (nonatomic, assign) NSUInteger sendImageIndex;
+
 + (BOOL)handleOpenURL:(NSURL*)url;
+- (void)sendImage;
+
 @end

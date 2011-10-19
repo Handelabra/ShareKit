@@ -274,6 +274,7 @@ static const NSTimeInterval kTimeoutInterval = 180.0;
  * @return boolean - whether this request is processing
  */
 - (BOOL)loading {
+    DebugLog(@"_connection = %@", _connection);
   return !!_connection;
 }
 

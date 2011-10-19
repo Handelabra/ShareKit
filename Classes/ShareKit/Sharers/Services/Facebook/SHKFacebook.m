@@ -27,17 +27,20 @@
 
 #import "SHKFacebook.h"
 
-static NSString *const kSHKStoredItemKey=@"kSHKStoredItem";
-static NSString *const kSHKFacebookAccessTokenKey=@"kSHKFacebookAccessToken";
-static NSString *const kSHKFacebookExpiryDateKey=@"kSHKFacebookExpiryDate";
+static NSString *const kSHKStoredItemKey = @"kSHKStoredItem";
+static NSString *const kSHKFacebookAccessTokenKey = @"kSHKFacebookAccessToken";
+static NSString *const kSHKFacebookExpiryDateKey = @"kSHKFacebookExpiryDate";
 
-@interface SHKFacebook()
-+ (Facebook*)facebook;
-+ (void)flushAccessToken;
-+ (NSString *)storedImagePath:(UIImage*)image;
-+ (UIImage*)storedImage:(NSString*)imagePath;
+static NSString *const kSHKStoredItemImagePathKey = @"imagePath";
+static NSString *const kSHKStoredItemImagePathsKey = @"imagePaths";
 
-- (void)sendImage:(UIImage*)image caption:(NSString*)caption;
+@interface SHKFacebook ()
++ (Facebook*)  facebook;
++ (void)       flushAccessToken;
++ (NSString *) storedImagePath:(UIImage*)image;
++ (UIImage*)   storedImage:(NSString*)imagePath;
+
+- (void) sendImage:(UIImage*)image forItem:(SHKItem*)anItem;
 
 @end
 
@@ -45,337 +48,371 @@ static NSString *const kSHKFacebookExpiryDateKey=@"kSHKFacebookExpiryDate";
 
 @synthesize sendImageIndex;
 
-- (void)dealloc
+- (void) dealloc
 {
-	[super dealloc];
+    [super dealloc];
 }
 
-+ (Facebook*)facebook 
++ (Facebook*) facebook
 {
-  static Facebook *facebook=nil;
-  @synchronized([SHKFacebook class]) {
-    if (! facebook)
-      facebook = [[Facebook alloc] initWithAppId:SHKFacebookAppID];
-  }
-  return facebook;
+    static Facebook *facebook = nil;
+
+    @synchronized([SHKFacebook class ])
+    {
+        if (!facebook)
+            facebook = [[Facebook alloc] initWithAppId:SHKFacebookAppID];
+    }
+    return facebook;
 }
 
-+ (void)flushAccessToken 
++ (void) flushAccessToken
 {
-  Facebook *facebook = [self facebook];
-  facebook.accessToken = nil;
-  facebook.expirationDate = nil;
-  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-  [defaults removeObjectForKey:kSHKFacebookAccessTokenKey];
-  [defaults removeObjectForKey:kSHKFacebookExpiryDateKey];
-  [defaults synchronize];
+    Facebook *facebook = [self facebook];
+
+    facebook.accessToken = nil;
+    facebook.expirationDate = nil;
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults removeObjectForKey:kSHKFacebookAccessTokenKey];
+    [defaults removeObjectForKey:kSHKFacebookExpiryDateKey];
+    [defaults synchronize];
 }
 
-+ (NSString *)storedImagePath:(UIImage*)image
++ (NSString *) storedImagePath:(UIImage*)image
 {
-	NSFileManager *fileManager = [NSFileManager defaultManager];
-	NSArray *paths = NSSearchPathForDirectoriesInDomains( NSCachesDirectory, NSUserDomainMask, YES);
-	NSString *cache = [paths objectAtIndex:0];
-	NSString *imagePath = [cache stringByAppendingPathComponent:@"SHKImage"];
-	
-	// Check if the path exists, otherwise create it
-	if (![fileManager fileExistsAtPath:imagePath]) 
-		[fileManager createDirectoryAtPath:imagePath withIntermediateDirectories:YES attributes:nil error:nil];
-	
-  NSString *uid = [NSString stringWithFormat:@"img-%i-%i", [[NSDate date] timeIntervalSince1970], arc4random()];    
-  // store image in cache
-  NSData *imageData = UIImagePNGRepresentation(image);
-  imagePath = [imagePath stringByAppendingPathComponent:uid];
-  [imageData writeToFile:imagePath atomically:YES];
-  
-	return imagePath;
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+    NSString *cache = [paths objectAtIndex:0];
+    NSString *imagePath = [cache stringByAppendingPathComponent:@"SHKImage"];
+
+    // Check if the path exists, otherwise create it
+    if (![fileManager fileExistsAtPath:imagePath])
+    {
+        [fileManager createDirectoryAtPath:imagePath withIntermediateDirectories:YES attributes:nil error:nil];
+    }
+
+    NSString *uid = [NSString stringWithFormat:@"img-%i-%i", [[NSDate date] timeIntervalSince1970], arc4random()];
+    // store image in cache
+    NSData *imageData = UIImagePNGRepresentation(image);
+    imagePath = [imagePath stringByAppendingPathComponent:uid];
+    [imageData writeToFile:imagePath atomically:YES];
+
+    return imagePath;
 }
 
-+ (UIImage*)storedImage:(NSString*)imagePath {
-  NSData *imageData = [NSData dataWithContentsOfFile:imagePath];
-  UIImage *image = nil;
-  if (imageData) {
-    image = [UIImage imageWithData:imageData];
-  }
-  // Unlink the stored file:
-  [[NSFileManager defaultManager] removeItemAtPath:imagePath error:nil];
-  return image;
++ (UIImage*) storedImage:(NSString*)imagePath
+{
+    NSData *imageData = [NSData dataWithContentsOfFile:imagePath];
+    UIImage *image = nil;
+
+    if (imageData)
+    {
+        image = [UIImage imageWithData:imageData];
+    }
+    // Unlink the stored file:
+    [[NSFileManager defaultManager] removeItemAtPath:imagePath error:nil];
+    return image;
 }
 
-+ (BOOL)handleOpenURL:(NSURL*)url 
++ (BOOL) handleOpenURL:(NSURL*)url
 {
-  Facebook *fb = [SHKFacebook facebook];
-  if (! fb.sessionDelegate) {
-    SHKFacebook *sharer = [[[SHKFacebook alloc] init] autorelease];
-    fb.sessionDelegate = sharer;
-  }
-  return [fb handleOpenURL:url];
+    Facebook *fb = [SHKFacebook facebook];
+
+    if (!fb.sessionDelegate)
+    {
+        SHKFacebook *sharer = [[[SHKFacebook alloc] init] autorelease];
+        fb.sessionDelegate = sharer;
+    }
+    return [fb handleOpenURL:url];
 }
 
 #pragma mark -
 #pragma mark Configuration : Service Defination
 
-+ (NSString *)sharerTitle
++ (NSString *) sharerTitle
 {
-	return @"Facebook";
+    return @"Facebook";
 }
 
-+ (BOOL)canShareURL
-{
-	return YES;
-}
-
-+ (BOOL)canShareText
-{
-	return YES;
-}
-
-+ (BOOL)canShareImage
-{
-	return YES;
-}
-
-+ (BOOL)canShareImages
++ (BOOL) canShareURL
 {
     return YES;
 }
 
-+ (BOOL)canShareOffline
++ (BOOL) canShareText
 {
-	return NO; // TODO - would love to make this work
+    return YES;
+}
+
++ (BOOL) canShareImage
+{
+    return YES;
+}
+
++ (BOOL) canShareImages
+{
+    return YES;
+}
+
++ (BOOL) canShareOffline
+{
+    return NO;     // TODO - would love to make this work
 }
 
 #pragma mark -
 #pragma mark Configuration : Dynamic Enable
 
-- (BOOL)shouldAutoShare
+- (BOOL) shouldAutoShare
 {
-	return YES;
+    return YES;
 }
 
 #pragma mark -
 #pragma mark Authentication
 
-- (BOOL)isAuthorized
-{	  
-  Facebook *facebook = [SHKFacebook facebook];
-  if ([facebook isSessionValid]) return YES;
-  
-  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-  facebook.accessToken = [defaults stringForKey:kSHKFacebookAccessTokenKey];
-  facebook.expirationDate = [defaults objectForKey:kSHKFacebookExpiryDateKey];
-  return [facebook isSessionValid];
+- (BOOL) isAuthorized
+{
+    Facebook *facebook = [SHKFacebook facebook];
+
+    if ([facebook isSessionValid])
+    {
+        return YES;
+    }
+
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    facebook.accessToken = [defaults stringForKey:kSHKFacebookAccessTokenKey];
+    facebook.expirationDate = [defaults objectForKey:kSHKFacebookExpiryDateKey];
+    return [facebook isSessionValid];
 }
 
-- (void)promptAuthorization
+- (void) promptAuthorization
 {
-  NSMutableDictionary *itemRep = [NSMutableDictionary dictionaryWithDictionary:[self.item dictionaryRepresentation]];
-  if (item.image)
-  {
-    [itemRep setObject:[SHKFacebook storedImagePath:item.image] forKey:@"imagePath"];
-  }
-  [[NSUserDefaults standardUserDefaults] setObject:itemRep forKey:kSHKStoredItemKey];
+    NSMutableDictionary *itemRep = [NSMutableDictionary dictionaryWithDictionary:[self.item dictionaryRepresentation]];
+
+    if (item.image)
+    {
+        [itemRep setObject:[SHKFacebook storedImagePath:item.image] forKey:kSHKStoredItemImagePathKey];
+    }
+    else if (item.images)
+    {
+        NSMutableArray *images = [NSMutableArray arrayWithCapacity:item.images.count];
+        for (UIImage *image in item.images)
+        {
+            [images addObject:[SHKFacebook storedImagePath:image]];
+        }
+        [itemRep setObject:images forKey:kSHKStoredItemImagePathsKey];
+    }
+    [[NSUserDefaults standardUserDefaults] setObject:itemRep forKey:kSHKStoredItemKey];
 #ifdef SHKFacebookLocalAppID
-  [[SHKFacebook facebook] authorize:[NSArray arrayWithObjects:@"publish_stream", 
-                                     @"offline_access", nil]
-                           delegate:self
-                         localAppId:SHKFacebookLocalAppID];
+    [[SHKFacebook facebook] authorize:[NSArray arrayWithObjects:@"publish_stream",
+                                       @"offline_access", nil]
+                             delegate:self
+                           localAppId:SHKFacebookLocalAppID];
 #else
-  [[SHKFacebook facebook] authorize:[NSArray arrayWithObjects:@"publish_stream", 
-                                     @"offline_access", nil]
-                           delegate:self];
+    [[SHKFacebook facebook] authorize:[NSArray arrayWithObjects:@"publish_stream",
+                                       @"offline_access", nil]
+                             delegate:self];
 #endif
 }
 
-- (void)authFinished:(SHKRequest *)req
-{		
+- (void) authFinished:(SHKRequest *)req
+{
 }
 
-+ (void)logout
++ (void) logout
 {
-  [[NSUserDefaults standardUserDefaults] removeObjectForKey:kSHKStoredItemKey];
-  [self flushAccessToken];
-  [[self facebook] logout:nil];
+    [[NSUserDefaults standardUserDefaults] removeObjectForKey:kSHKStoredItemKey];
+    [self flushAccessToken];
+    [[self facebook] logout:nil];
 }
 
 #pragma mark -
 #pragma mark Share API Methods
 
-- (BOOL)send
-{			
-  NSMutableDictionary *params = [NSMutableDictionary dictionary];
-  NSString *actions = [NSString stringWithFormat:@"{\"name\":\"Get %@\",\"link\":\"%@\"}",  
-                       SHKMyAppName, SHKMyAppURL];
-  [params setObject:actions forKey:@"actions"];
+- (BOOL) send
+{
+    NSMutableDictionary *params = [NSMutableDictionary dictionary];
+    NSString *actions = [NSString stringWithFormat:@"{\"name\":\"Get %@\",\"link\":\"%@\"}",
+                         SHKMyAppName, SHKMyAppURL];
 
-	if (item.shareType == SHKShareTypeURL && item.URL)
-	{
-    NSString *url = [item.URL absoluteString];
-    [params setObject:url forKey:@"link"];
-    [params setObject:item.title == nil ? url : item.title
-               forKey:@"name"];    
-    if (item.text)
-      [params setObject:item.text forKey:@"message"];
-    NSString *pictureURI = [item customValueForKey:@"picture"];
-    if (pictureURI)
-      [params setObject:pictureURI forKey:@"picture"];
-	}
-	else if (item.shareType == SHKShareTypeText && item.text)
-	{
-    [params setObject:item.text forKey:@"message"];
-	}
+    [params setObject:actions forKey:@"actions"];
 
-//	else if (item.shareType == SHKShareTypeImage || item.shareType == SHKShareTypeImages)
-//	{		
-//		self.pendingFacebookAction = SHKFacebookPendingImage;
-//		
-//		FBPermissionDialog* dialog = [[[FBPermissionDialog alloc] init] autorelease];
-//		dialog.delegate = self;
-//		dialog.permission = @"photo_upload";
-//		[dialog show];		
-//	}
-	
-	else if (item.shareType == SHKShareTypeImage && item.image)
-	{	
-    if (item.title) 
-      [params setObject:item.title forKey:@"caption"];
-    if (item.text) 
-      [params setObject:item.text forKey:@"message"];
-    [params setObject:item.image forKey:@"picture"];
-    // There does not appear to be a way to add the photo 
-    // via the dialog option:
-    [[SHKFacebook facebook] requestWithGraphPath:@"me/photos"
-                                       andParams:params
-                                   andHttpMethod:@"POST"
-                                     andDelegate:self];
+    if (item.shareType == SHKShareTypeURL && item.URL)
+    {
+        NSString *url = [item.URL absoluteString];
+        [params setObject:url forKey:@"link"];
+        [params setObject:item.title == nil ? url:item.title
+                   forKey:@"name"];
+        if (item.text)
+        {
+            [params setObject:item.text forKey:@"message"];
+        }
+        NSString *pictureURI = [item customValueForKey:@"picture"];
+        if (pictureURI)
+        {
+            [params setObject:pictureURI forKey:@"picture"];
+        }
+    }
+    else if (item.shareType == SHKShareTypeText && item.text)
+    {
+        [params setObject:item.text forKey:@"message"];
+    }
+
+    else if ((item.shareType == SHKShareTypeImage && item.image) || (item.shareType == SHKShareTypeImages && item.images))
+    {
+        [self sendImage];
+        return YES;
+    }
+    else
+    {
+        // There is nothing to send
+        return NO;
+    }
+
+    [[SHKFacebook facebook] dialog:@"feed"
+                         andParams:params
+                       andDelegate:self];
     return YES;
-	} 
-  else 
-    // There is nothing to send
-    return NO;
-  
-  [[SHKFacebook facebook] dialog:@"feed"
-                       andParams:params 
-                     andDelegate:self];
-	return YES;
 }
 
-// - (void)sendImage
-// {
-//     UIImage *sendImage = nil;
-//     if (item.image != nil)
-//     {
-//         sendImage = item.image;
-//     }
-//     else if (item.images != nil && item.images.count > 0)
-//     {
-//         self.sendImageIndex = 0;
-//         sendImage = [item.images objectAtIndex:self.sendImageIndex];
-//     }
-//     
-//     if (sendImage != nil)
-//     {
-//         [self sendDidStart];
-// 
-//         [self sendImage:sendImage caption:item.title];
-//     }
-// }
-// 
-// - (void)sendImage:(UIImage*)image caption:(NSString*)caption
-// {
-//     [[FBRequest requestWithDelegate:self] call:@"facebook.photos.upload"
-//                                         params:[NSDictionary dictionaryWithObjectsAndKeys:caption, @"caption", nil]
-//                                      dataParam:UIImageJPEGRepresentation(image,1.0)];
-// }
+ - (void)sendImage
+ {
+     UIImage *sendImage = nil;
+     if (item.image != nil)
+     {
+         sendImage = item.image;
+     }
+     else if (item.images != nil && item.images.count > 0)
+     {
+         self.sendImageIndex = 0;
+         sendImage = [item.images objectAtIndex:self.sendImageIndex];
+     }
+
+     if (sendImage != nil)
+     {
+         [self sendDidStart];
+
+         [self sendImage:sendImage forItem:item];
+     }
+ }
+
+ - (void)sendImage:(UIImage*)image forItem:(SHKItem*)anItem
+ {
+     NSMutableDictionary *params = [NSMutableDictionary dictionary];
+     if (item.title)
+     {
+         [params setObject:item.title forKey:@"caption"];
+     }
+     if (item.text)
+     {
+         [params setObject:item.text forKey:@"message"];
+     }
+     [params setObject:image forKey:@"picture"];
+     
+     // There does not appear to be a way to add the photo
+     // via the dialog option:
+     [[SHKFacebook facebook] requestWithGraphPath:@"me/photos"
+                                        andParams:params
+                                    andHttpMethod:@"POST"
+                                      andDelegate:self];
+ }
 
 
 #pragma mark -
 #pragma mark FBDialogDelegate methods
 
-- (void)dialogDidComplete:(FBDialog *)dialog
+- (void) dialogDidComplete:(FBDialog *)dialog
 {
-  [self sendDidFinish];  
+    [self sendDidFinish];
 }
 
-- (void)dialogCompleteWithUrl:(NSURL *)url 
+- (void) dialogCompleteWithUrl:(NSURL *)url
 {
-  // error_code=190: user changed password or revoked access to the application,
-  // so spin the user back over to authentication :
-  NSRange errorRange = [[url absoluteString] rangeOfString:@"error_code=190"];
-  if (errorRange.location != NSNotFound) 
-  {
-    [SHKFacebook flushAccessToken];
-    [self authorize];
-  }
+    // error_code=190: user changed password or revoked access to the application,
+    // so spin the user back over to authentication :
+    NSRange errorRange = [[url absoluteString] rangeOfString:@"error_code=190"];
+
+    if (errorRange.location != NSNotFound)
+    {
+        [SHKFacebook flushAccessToken];
+        [self authorize];
+    }
 }
 
-- (void)dialogDidCancel:(FBDialog*)dialog
+- (void) dialogDidCancel:(FBDialog*)dialog
 {
-  [self sendDidCancel];
+    [self sendDidCancel];
 }
 
-- (void)dialog:(FBDialog *)dialog didFailWithError:(NSError *)error 
+- (void) dialog:(FBDialog *)dialog didFailWithError:(NSError *)error
 {
-  [self sendDidFailWithError:error];
+    [self sendDidFailWithError:error];
 }
 
-- (BOOL)dialog:(FBDialog*)dialog shouldOpenURLInExternalBrowser:(NSURL*)url
+- (BOOL) dialog:(FBDialog*)dialog shouldOpenURLInExternalBrowser:(NSURL*)url
 {
-	return YES;
+    return YES;
 }
 
 #pragma mark FBSessionDelegate methods
 
-- (void)fbDidLogin 
+- (void) fbDidLogin
 {
-  NSString *accessToken = [[SHKFacebook facebook] accessToken];
-  NSDate *expiryDate = [[SHKFacebook facebook] expirationDate];
-  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-  [defaults setObject:accessToken forKey:kSHKFacebookAccessTokenKey];
-  [defaults setObject:expiryDate forKey:kSHKFacebookExpiryDateKey];
-  NSDictionary *storedItem = [defaults objectForKey:kSHKStoredItemKey];
-  if (storedItem)
-  {
-    self.item = [SHKItem itemFromDictionary:storedItem];
-    NSString *imagePath = [storedItem objectForKey:@"imagePath"];
-    if (imagePath) {
-      self.item.image = [SHKFacebook storedImage:imagePath];
+    NSString *accessToken = [[SHKFacebook facebook] accessToken];
+    NSDate *expiryDate = [[SHKFacebook facebook] expirationDate];
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+
+    [defaults setObject:accessToken forKey:kSHKFacebookAccessTokenKey];
+    [defaults setObject:expiryDate forKey:kSHKFacebookExpiryDateKey];
+    NSDictionary *storedItem = [defaults objectForKey:kSHKStoredItemKey];
+    if (storedItem)
+    {
+        self.item = [SHKItem itemFromDictionary:storedItem];
+        NSString *imagePath = [storedItem objectForKey:kSHKStoredItemImagePathKey];
+        NSArray *imagePaths = [storedItem objectForKey:kSHKStoredItemImagePathsKey];
+        if (imagePath != nil)
+        {
+            self.item.image = [SHKFacebook storedImage:imagePath];
+        }
+        else if (imagePaths != nil)
+        {
+            self.item.images = imagePaths;
+        }
+        [defaults removeObjectForKey:kSHKStoredItemKey];
     }
-    [defaults removeObjectForKey:kSHKStoredItemKey];
-  }
-  [defaults synchronize];
-  if (self.item) 
-    [self share];
+    [defaults synchronize];
+    if (self.item)
+    {
+        [self share];
+    }
 }
 
 #pragma mark FBRequestDelegate methods
 
-- (void)requestLoading:(FBRequest *)request
+- (void) requestLoading:(FBRequest *)request
 {
-  [self sendDidStart];
+    [self sendDidStart];
 }
 
-- (void)request:(FBRequest *)request didLoad:(id)result
+- (void) request:(FBRequest *)aRequest didLoad:(id)result
 {
-	if ([aRequest.method isEqualToString:@"facebook.photos.upload"]) 
-	{
-        if (item.image != nil || (item.images != nil && self.sendImageIndex == (item.images.count-1)))
+    if ([aRequest.url rangeOfString:@"me/photos"].location != NSNotFound)
+    {
+        if (item.image != nil || (item.images != nil && self.sendImageIndex == (item.images.count - 1)))
         {
-            // PID is in [result objectForKey:@"pid"];
             [self sendDidFinish];
         }
         else
         {
             self.sendImageIndex++;
-            [self sendImage:[item.images objectAtIndex:self.sendImageIndex] caption:item.title];
+            [self sendImage:[item.images objectAtIndex:self.sendImageIndex] forItem:item];
         }
-	}
+    }
 }
 
-- (void)request:(FBRequest*)aRequest didFailWithError:(NSError*)error 
+- (void) request:(FBRequest*)aRequest didFailWithError:(NSError*)error
 {
-	if ([aRequest.method isEqualToString:@"facebook.photos.upload"]) 
-	{
+    if ([aRequest.url rangeOfString:@"me/photos"].location != NSNotFound)
+    {
         self.sendImageIndex++;
     }
     [self sendDidFailWithError:error];

@@ -111,6 +111,7 @@ static NSString* kSDKVersion = @"2";
                                    httpMethod:httpMethod
                                      delegate:delegate
                                    requestURL:url] retain];
+    DebugLog(@"_request = %@", _request);
   [_request connect];
   return _request;
 }
