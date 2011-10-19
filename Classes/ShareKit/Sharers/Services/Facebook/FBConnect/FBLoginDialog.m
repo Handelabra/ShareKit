@@ -30,36 +30,10 @@
 - (id)initWithURL:(NSString*) loginURL 
       loginParams:(NSMutableDictionary*) params 
          delegate:(id <FBLoginDialogDelegate>) delegate{
-  
-<<<<<<< HEAD
-  if (_session.getSessionProxy) {
-    [_getSessionRequest post:_session.getSessionProxy params:params];
-  } else {
-    [_getSessionRequest call:@"facebook.auth.getSession" params:params];
-  }
-}
-
-- (void)loadLoginPage {
-  NSDictionary* params = [NSDictionary dictionaryWithObjectsAndKeys:
-    @"1", @"fbconnect", @"touch", @"connect_display", _session.apiKey, @"api_key",
-    @"fbconnect://success", @"next", nil];
-
-  [self loadURL:kLoginURL method:@"GET" get:params post:nil];
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// NSObject
-
-- (id)initWithSession:(FBSession*)session {
-  if ((self = [super initWithSession:session])) {
-    _getSessionRequest = nil;
-  }
-=======
   self = [super init];
   _serverURL = [loginURL retain];
   _params = [params retain];
   _loginDelegate = delegate;
->>>>>>> newfb-fork
   return self;
 }
 
@@ -106,26 +80,6 @@
   }
 }
 
-<<<<<<< HEAD
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// FBRequestDelegate
-
-- (void)request:(FBRequest*)request didLoad:(id)result {
-  NSDictionary* object = result;
-  FBUID uid = (FBUID)[[object objectForKey:@"uid"] longLongValue];
-  NSString* sessionKey = [object objectForKey:@"session_key"];
-  NSString* sessionSecret = [object objectForKey:@"secret"];
-  NSTimeInterval expires = [[object objectForKey:@"expires"] floatValue];
-  NSDate* expiration = expires ? [NSDate dateWithTimeIntervalSince1970:expires] : nil;
-  
-  [_getSessionRequest release];
-  _getSessionRequest = nil;
-
-  [_session begin:uid sessionKey:sessionKey sessionSecret:sessionSecret expires:expiration];
-  [_session resume];
-  
-  [self dismissWithSuccess:YES animated:YES];
-=======
 - (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
   if (!(([error.domain isEqualToString:@"NSURLErrorDomain"] && error.code == -999) ||
         ([error.domain isEqualToString:@"WebKitErrorDomain"] && error.code == 102))) {
@@ -134,7 +88,6 @@
       [_loginDelegate fbDialogNotLogin:NO];
     }
   }
->>>>>>> newfb-fork
 }
 
 @end

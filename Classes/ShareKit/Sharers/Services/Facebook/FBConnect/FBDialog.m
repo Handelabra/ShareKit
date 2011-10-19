@@ -293,17 +293,7 @@ BOOL FBIsDeviceIPad() {
 // NSObject
 
 - (id)init {
-<<<<<<< HEAD
-  return [self initWithSession:[FBSession session]];
-}
-
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-
-- (id)initWithSession:(FBSession*)session {
   if ((self = [super initWithFrame:CGRectZero])) {
-=======
-  if (self = [super initWithFrame:CGRectZero]) {
->>>>>>> newfb-fork
     _delegate = nil;
     _loadingURL = nil;
     _orientation = UIDeviceOrientationUnknown;
