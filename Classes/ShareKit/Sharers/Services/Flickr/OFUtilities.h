@@ -62,12 +62,20 @@ NS_INLINE NSString *OFMD5HexStringFromNSString(NSString *inStr)
 
 NS_INLINE NSString *OFEscapedURLStringFromNSString(NSString *inStr)
 {
+#if !defined(__has_feature) || !__has_feature(objc_arc)
 	CFStringRef escaped = CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)inStr, NULL, CFSTR("&"), kCFStringEncodingUTF8);
+#else
+	CFStringRef escaped = CFURLCreateStringByAddingPercentEscapes(NULL, (__bridge CFStringRef)inStr, NULL, CFSTR("&"), kCFStringEncodingUTF8);
+#endif
 
     #if MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_4	
 	return (NSString *)[(NSString*)escaped autorelease];			    
     #else
+#if !defined(__has_feature) || !__has_feature(objc_arc)
 	return (NSString *)[NSMakeCollectable(escaped) autorelease];			    
+#else
+	return (__bridge_transfer NSString *)escaped;			    
+#endif
 	#endif
 }
 
@@ -80,6 +88,10 @@ NS_INLINE NSString *OFGenerateUUIDString()
 #if MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_4	
 	return (NSString *)[(NSString*)uuidStr autorelease];			    
 #else
-	return (NSString *)[NSMakeCollectable(uuidStr) autorelease];			    
+#if !defined(__has_feature) || !__has_feature(objc_arc)
+	return (NSString *)[NSMakeCollectable(uuidStr) autorelease];	
+#else
+    return (__bridge_transfer NSString *)uuidStr;
+#endif
 #endif	
 }

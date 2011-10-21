@@ -368,21 +368,26 @@
 	// TODO better error handling here
 	
 	if (ticket.didSucceed) 
+    {
 		[self sendDidFinish];
-	
+	}
 	else
 	{		
-		if (SHKDebugShowLogs)
-			SHKLog(@"Twitter Send Status Error: %@", [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease]);
-		
 		// CREDIT: Oliver Drobnik
 		
-		NSString *string = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];		
+		NSString *string = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];		
+
+		if (SHKDebugShowLogs)
+        {
+			SHKLog(@"Twitter Send Status Error: %@", string);
+        }
+		
 		
 		// in case our makeshift parsing does not yield an error message
 		NSString *errorMessage = @"Unknown Error";		
 		
 		NSScanner *scanner = [NSScanner scannerWithString:string];
+        [string release];
 		
 		// skip until error message
 		[scanner scanUpToString:@"\"error\":\"" intoString:nil];
