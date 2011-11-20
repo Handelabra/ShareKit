@@ -28,9 +28,10 @@
  
  */
 
+
+#include "hmac.h"
 #include "sha1.h"
 
-#include <stdlib.h>
 #include <string.h>
 
 void hmac_sha1(const unsigned char *inText, size_t inTextLength, unsigned char* inKey, size_t inKeyLength, unsigned char *outDigest)
@@ -58,7 +59,7 @@ memcpy(k_ipad, inKey, inKeyLength);
 memcpy(k_opad, inKey, inKeyLength);
 
 /* XOR key with ipad and opad values */
-int i;
+size_t i;
 for (i = 0; i < B; i++)
 	{
 	k_ipad[i] ^= 0x36;
