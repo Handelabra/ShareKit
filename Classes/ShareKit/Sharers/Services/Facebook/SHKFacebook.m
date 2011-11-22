@@ -268,9 +268,10 @@ static NSString *const kSHKStoredItemImagePathsKey = @"imagePaths";
         return NO;
     }
 
-    [[SHKFacebook facebook] dialog:@"feed"
-                         andParams:params
-                       andDelegate:self];
+    [[SHKFacebook facebook] requestWithGraphPath:@"me/feed" 
+                                       andParams:params 
+                                   andHttpMethod:@"POST" 
+                                     andDelegate:self];
     return YES;
 }
 
