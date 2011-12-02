@@ -376,7 +376,12 @@ static NSString *const kSHKStoredItemImagePathsKey = @"imagePaths";
         }
         else if (imagePaths != nil)
         {
-            self.item.images = imagePaths;
+            NSMutableArray *images = [NSMutableArray arrayWithCapacity:imagePaths.count];
+            for (NSString *p in imagePaths)
+            {
+                [images addObject:[SHKFacebook storedImage:p]];
+            }
+            self.item.images = images;
         }
         [defaults removeObjectForKey:kSHKStoredItemKey];
     }
