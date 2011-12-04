@@ -199,7 +199,10 @@ signatureProvider:(id<OASignatureProviding, NSObject>)aProvider
 {
     CFUUIDRef theUUID = CFUUIDCreate(NULL);
     CFStringRef string = CFUUIDCreateString(NULL, theUUID);
-    NSMakeCollectable(theUUID);
+    if (nonce != nil)
+    {
+        [nonce release];
+    }
     nonce = (NSString *)string;
 	CFRelease(theUUID);
 }
