@@ -120,7 +120,7 @@ NSString *const SHKMailRecipientsKey = @"SHKMailRecipientsKey";
 
 - (BOOL)sendMail
 {	
-	MFMailComposeViewController *mailController = [[[MFMailComposeViewController alloc] init] autorelease];
+	MFMailComposeViewController *mailController = [[MFMailComposeViewController alloc] init];
 	if (!mailController) {
 		// e.g. no mail account registered (will show alert)
 		[[SHK currentHelper] hideCurrentViewControllerAnimated:YES];
@@ -129,38 +129,48 @@ NSString *const SHKMailRecipientsKey = @"SHKMailRecipientsKey";
 	
 	mailController.mailComposeDelegate = self;
 	
-	NSString *body = [item customValueForKey:@"body"];
+	NSString *body = [self.item customValueForKey:@"body"];
 	
 	if (body == nil)
 	{
-		if (item.text != nil)
-			body = item.text;
+		if (self.item.text != nil)
+        {
+			body = self.item.text;
+        }
 		
-		if (item.URL != nil)
+		if (self.item.URL != nil)
 		{	
-			NSString *urlStr = [item.URL.absoluteString stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+			NSString *urlStr = [self.item.URL.absoluteString stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
 			
 			if (body != nil)
+            {
 				body = [body stringByAppendingFormat:@"<br/><br/>%@", urlStr];
-			
+			}
 			else
+            {
 				body = urlStr;
+            }
 		}
 		
-		if (item.data)
+		if (self.item.data)
 		{
-			NSString *attachedStr = SHKLocalizedString(@"Attached: %@", item.title ? item.title : item.filename);
+			NSString *attachedStr = SHKLocalizedString(@"Attached: %@", self.item.title ? self.item.title : self.item.filename);
 			
 			if (body != nil)
+            {
 				body = [body stringByAppendingFormat:@"<br/><br/>%@", attachedStr];
-			
+            }
 			else
+            {
 				body = attachedStr;
+            }
 		}
 		
 		// fallback
 		if (body == nil)
+        {
 			body = @"";
+        }
 		
 		// sig
 		if (SHKSharedWithSignature)
@@ -170,25 +180,27 @@ NSString *const SHKMailRecipientsKey = @"SHKMailRecipientsKey";
 		}
 		
 		// save changes to body
-		[item setCustomValue:body forKey:@"body"];
+		[self.item setCustomValue:body forKey:@"body"];
 	}
 	
-	if (item.data)		
-		[mailController addAttachmentData:item.data mimeType:item.mimeType fileName:item.filename];
+	if (self.item.data)
+    {
+		[mailController addAttachmentData:self.item.data mimeType:self.item.mimeType fileName:self.item.filename];
+    }
 	
     NSString *imageMimeType = @"image/jpeg";
     NSString *imageName = @"Image";
     NSString *imageExt = @"jpg";
-	if (item.image)
+	if (self.item.image)
     {
-		[mailController addAttachmentData:UIImageJPEGRepresentation(item.image, 1.0)
+		[mailController addAttachmentData:UIImageJPEGRepresentation(self.item.image, 1.0)
                                  mimeType:imageMimeType
                                  fileName:[imageName stringByAppendingPathExtension:imageExt]];
     }
-    if (item.images)
+    if (self.item.images)
     {
         NSUInteger count = 1;
-        for (UIImage *image in item.images)
+        for (UIImage *image in self.item.images)
         {
             [mailController addAttachmentData:UIImageJPEGRepresentation(image, 1.0)
                                      mimeType:imageMimeType
@@ -197,16 +209,19 @@ NSString *const SHKMailRecipientsKey = @"SHKMailRecipientsKey";
         }
     }
 	
-	[mailController setSubject:item.title];
+	[mailController setSubject:self.item.title];
 	[mailController setMessageBody:body isHTML:YES];
     
-    NSArray *toRecipients = [item customValueForKey:SHKMailRecipientsKey];
+    NSArray *toRecipients = [self.item customValueForKey:SHKMailRecipientsKey];
     if (toRecipients != nil && toRecipients.count > 0)
     {
         [mailController setToRecipients:toRecipients];
     }
+    
+    self.item = nil;
 			
 	[[SHK currentHelper] showViewController:mailController];
+    [mailController release];
 	
 	return YES;
 }

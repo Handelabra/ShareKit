@@ -41,6 +41,10 @@ extern NSString *const SHKMailRecipientsKey;
 
 }
 
+
+// Sends mail based on contents of item property. In the interest of reducing
+// the memory usage of this operation, the item property is set to nil after
+// its contents have been set on the MFMailComposeViewController.
 - (BOOL)sendMail;
 
 @end
