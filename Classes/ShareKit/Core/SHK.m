@@ -79,8 +79,6 @@ BOOL SHKinit;
 	[super dealloc];
 }
 
-
-
 #pragma mark -
 #pragma mark View Management
 
@@ -92,10 +90,10 @@ BOOL SHKinit;
 
 - (void)showViewController:(UIViewController *)vc
 {	
-	if (rootViewController)
+	if (self.rootViewController)
     {
         // If developer provieded a root view controler, use it
-        self.currentRootViewController = rootViewController;
+        self.currentRootViewController = self.rootViewController;
     }
     else
 	{
@@ -109,7 +107,9 @@ BOOL SHKinit;
 			for(topWindow in windows)
 			{
 				if (topWindow.windowLevel == UIWindowLevelNormal)
+                {
 					break;
+                }
 			}
 		}
 		
@@ -117,23 +117,36 @@ BOOL SHKinit;
 		id nextResponder = [rootView nextResponder];
 		
 		if ([nextResponder isKindOfClass:[UIViewController class]])
+        {
 			self.currentRootViewController = nextResponder;
-		
+		}
 		else
+        {
 			NSAssert(NO, @"ShareKit: Could not find a root view controller.  You can assign one manually by calling [[SHK currentHelper] setRootViewController:YOURROOTVIEWCONTROLLER].");
+        }
 	}
 	
 	// Find the top most view controller being displayed (so we can add the modal view to it and not one that is hidden)
 	UIViewController *topViewController = [self getTopViewController];	
 	if (topViewController == nil)
+    {
 		NSAssert(NO, @"ShareKit: There is no view controller to display from");
+    }
 	
 		
 	// If a view is already being shown, hide it, and then try again
-	if (currentView != nil)
+	if (self.currentView != nil)
 	{
 		self.pendingView = vc;
-		[[currentView parentViewController] dismissModalViewControllerAnimated:YES];
+        UIViewController *pvc = [self.currentView parentViewController];
+        if (pvc == nil && [self.currentView respondsToSelector:@selector(presentingViewController)])
+        {
+            pvc = [self.currentView performSelector:@selector(presentingViewController)];
+        }
+        if (pvc != nil)
+        {
+            [pvc dismissModalViewControllerAnimated:YES];
+        }
 		return;
 	}
 		
@@ -143,10 +156,14 @@ BOOL SHKinit;
 		UINavigationController *nav = [[[UINavigationController alloc] initWithRootViewController:vc] autorelease];
 		
 		if ([nav respondsToSelector:@selector(modalPresentationStyle)])
+        {
 			nav.modalPresentationStyle = [SHK modalPresentationStyle];
+        }
 		
 		if ([nav respondsToSelector:@selector(modalTransitionStyle)])
+        {
 			nav.modalTransitionStyle = [SHK modalTransitionStyle];
+        }
 		
 		nav.navigationBar.barStyle = nav.toolbar.barStyle = [SHK barStyle];
 		
@@ -158,10 +175,14 @@ BOOL SHKinit;
 	else
 	{		
 		if ([vc respondsToSelector:@selector(modalPresentationStyle)])
+        {
 			vc.modalPresentationStyle = [SHK modalPresentationStyle];
+        }
 		
 		if ([vc respondsToSelector:@selector(modalTransitionStyle)])
+        {
 			vc.modalTransitionStyle = [SHK modalTransitionStyle];
+        }
 		
 		[topViewController presentModalViewController:vc animated:YES];
 		[(UINavigationController *)vc navigationBar].barStyle = 
@@ -179,46 +200,47 @@ BOOL SHKinit;
 
 - (void)hideCurrentViewControllerAnimated:(BOOL)animated
 {
-	if (isDismissingView)
+	if (self.isDismissingView)
+    {
 		return;
-	
-	if (currentView != nil)
+	}
+    
+	if (self.currentView != nil)
 	{
 		// Dismiss the modal view
-        UIViewController *presentingVC = [currentView parentViewController];
-        if (presentingVC == nil && [currentView respondsToSelector:@selector(presentingViewController)])
+        UIViewController *presentingVC = [self.currentView parentViewController];
+        if (presentingVC == nil && [self.currentView respondsToSelector:@selector(presentingViewController)])
         {
-            presentingVC = [currentView performSelector:@selector(presentingViewController)];
+            presentingVC = [self.currentView performSelector:@selector(presentingViewController)];
         }
 		if (presentingVC != nil)
 		{
 			self.isDismissingView = YES;
 			[presentingVC dismissModalViewControllerAnimated:animated];
 		}
-		
 		else
+        {
 			self.currentView = nil;
+        }
 	}
 }
 
 - (void)showPendingView
 {
-    if (pendingView)
-        [self showViewController:pendingView];
+    if (self.pendingView)
+    {
+        [self showViewController:self.pendingView];
+    }
 }
 
 
 - (void)viewWasDismissed
 {
 	self.isDismissingView = NO;
-	
-	if (currentView != nil)
-		currentView = nil;
-
-    if (currentRootViewController != nil)
-        currentRootViewController = nil;
-
-	if (pendingView)
+	self.currentView = nil;
+    self.currentRootViewController = nil;
+    
+	if (self.pendingView)
 	{
 		// This is an ugly way to do it, but it works.
 		// There seems to be an issue chaining modal views otherwise
