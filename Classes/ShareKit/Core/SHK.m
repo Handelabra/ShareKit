@@ -62,10 +62,16 @@ BOOL SHKinit;
 	
 	if (!SHKinit)
 	{
-		SHKSwizzle([MFMailComposeViewController class], @selector(viewDidDisappear:), @selector(SHKviewDidDisappear:));			
-		
-		if (NSClassFromString(@"MFMessageComposeViewController") != nil)
-			SHKSwizzle([MFMessageComposeViewController class], @selector(viewDidDisappear:), @selector(SHKviewDidDisappear:));	
+        // Only swizzle MFMailComposeViewController if SHKMail is around.
+        if (NSClassFromString(@"SHKMail") != nil)
+        {
+            SHKSwizzle([MFMailComposeViewController class], @selector(viewDidDisappear:), @selector(SHKviewDidDisappear:));			
+            
+            if (NSClassFromString(@"MFMessageComposeViewController") != nil)
+            {
+                SHKSwizzle([MFMessageComposeViewController class], @selector(viewDidDisappear:), @selector(SHKviewDidDisappear:));	
+            }
+        }
 		
 		SHKinit = YES;
 	}
