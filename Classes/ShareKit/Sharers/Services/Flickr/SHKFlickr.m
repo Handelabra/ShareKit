@@ -224,7 +224,7 @@ NSString *kGetPrivacy = @"kGetPrivacy";
 	else if (inRequest.sessionInfo == kSetImagePropertiesStep) {
         if (item.image != nil || (item.images != nil && self.sendImageIndex == (item.images.count-1)))
         {
-            [[SHKActivityIndicator currentIndicator] displayCompleted:SHKLocalizedString(@"Uploaded to %@", self.title)];
+            [[SHKActivityIndicator currentIndicator] displayCompleted:SHKLocalizedString(@"Uploaded to %@", self.sharerTitle)];
             
             [self sendDidFinish];
         }
