@@ -34,13 +34,19 @@ static NSString *const kSHKFacebookExpiryDateKey = @"kSHKFacebookExpiryDate";
 static NSString *const kSHKStoredItemImagePathKey = @"imagePath";
 static NSString *const kSHKStoredItemImagePathsKey = @"imagePaths";
 
+static NSString *const kSHKStoredItemDataPathKey = @"dataPath";
+//static NSString *const kSHKStoredItemDataPathsKey = @"dataPaths";
+
 @interface SHKFacebook ()
 + (Facebook*)  facebook;
 + (void)       flushAccessToken;
 + (NSString *) storedImagePath:(UIImage*)image;
 + (UIImage*)   storedImage:(NSString*)imagePath;
++ (NSString *) storedDataPath:(NSData*)data;
++ (NSData*)   storedData:(NSString*)dataPath;
 
 - (void) sendImage:(UIImage*)image forItem:(SHKItem*)anItem;
+- (void) sendData:(NSData*)data forItem:(SHKItem*)anItem;
 
 @end
 
@@ -113,6 +119,35 @@ static NSString *const kSHKStoredItemImagePathsKey = @"imagePaths";
     return image;
 }
 
++ (NSString *) storedDataPath:(NSData*)data
+{
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+    NSString *cache = [paths objectAtIndex:0];
+    NSString *dataPath = [cache stringByAppendingPathComponent:@"SHKData"];
+    
+    // Check if the path exists, otherwise create it
+    if (![fileManager fileExistsAtPath:dataPath])
+    {
+        [fileManager createDirectoryAtPath:dataPath withIntermediateDirectories:YES attributes:nil error:nil];
+    }
+    
+    NSString *uid = [NSString stringWithFormat:@"dat-%i-%i", [[NSDate date] timeIntervalSince1970], arc4random()];
+    // store data in cache
+    dataPath = [dataPath stringByAppendingPathComponent:uid];
+    [data writeToFile:dataPath atomically:YES];
+    
+    return dataPath;
+}
+
++ (NSData*) storedData:(NSString*)dataPath
+{
+    NSData *data = [NSData dataWithContentsOfFile:dataPath];
+    // Unlink the stored file:
+    [[NSFileManager defaultManager] removeItemAtPath:dataPath error:nil];
+    return data;
+}
+
 + (BOOL) handleOpenURL:(NSURL*)url
 {
     Facebook *fb = [SHKFacebook facebook];
@@ -158,6 +193,11 @@ static NSString *const kSHKStoredItemImagePathsKey = @"imagePaths";
     return NO;     // TODO - would love to make this work
 }
 
++ (BOOL) canShareFile
+{
+    return YES;
+}
+
 #pragma mark -
 #pragma mark Configuration : Dynamic Enable
 
@@ -188,18 +228,22 @@ static NSString *const kSHKStoredItemImagePathsKey = @"imagePaths";
 {
     NSMutableDictionary *itemRep = [NSMutableDictionary dictionaryWithDictionary:[self.item dictionaryRepresentation]];
 
-    if (item.image)
+    if (self.item.image)
     {
-        [itemRep setObject:[SHKFacebook storedImagePath:item.image] forKey:kSHKStoredItemImagePathKey];
+        [itemRep setObject:[SHKFacebook storedImagePath:self.item.image] forKey:kSHKStoredItemImagePathKey];
     }
-    else if (item.images)
+    else if (self.item.images)
     {
-        NSMutableArray *images = [NSMutableArray arrayWithCapacity:item.images.count];
-        for (UIImage *image in item.images)
+        NSMutableArray *images = [NSMutableArray arrayWithCapacity:self.item.images.count];
+        for (UIImage *image in self.item.images)
         {
             [images addObject:[SHKFacebook storedImagePath:image]];
         }
         [itemRep setObject:images forKey:kSHKStoredItemImagePathsKey];
+    }
+    else if (self.item.data)
+    {
+        [itemRep setObject:[SHKFacebook storedDataPath:self.item.data] forKey:kSHKStoredItemDataPathKey];
     }
     [[NSUserDefaults standardUserDefaults] setObject:itemRep forKey:kSHKStoredItemKey];
 #ifdef SHKFacebookLocalAppID
@@ -236,31 +280,35 @@ static NSString *const kSHKStoredItemImagePathsKey = @"imagePaths";
 
     [params setObject:actions forKey:@"actions"];
 
-    if (item.shareType == SHKShareTypeURL && item.URL)
+    if (self.item.shareType == SHKShareTypeURL && self.item.URL)
     {
-        NSString *url = [item.URL absoluteString];
+        NSString *url = [self.item.URL absoluteString];
         [params setObject:url forKey:@"link"];
-        [params setObject:item.title == nil ? url:item.title
+        [params setObject:self.item.title == nil ? url:self.item.title
                    forKey:@"name"];
-        if (item.text)
+        if (self.item.text)
         {
-            [params setObject:item.text forKey:@"message"];
+            [params setObject:self.item.text forKey:@"message"];
         }
-        NSString *pictureURI = [item customValueForKey:@"picture"];
+        NSString *pictureURI = [self.item customValueForKey:@"picture"];
         if (pictureURI)
         {
             [params setObject:pictureURI forKey:@"picture"];
         }
     }
-    else if (item.shareType == SHKShareTypeText && item.text)
+    else if (self.item.shareType == SHKShareTypeText && self.item.text)
     {
-        [params setObject:item.text forKey:@"message"];
+        [params setObject:self.item.text forKey:@"message"];
     }
 
-    else if ((item.shareType == SHKShareTypeImage && item.image) || (item.shareType == SHKShareTypeImages && item.images))
+    else if ((self.item.shareType == SHKShareTypeImage && self.item.image) || (self.item.shareType == SHKShareTypeImages && self.item.images))
     {
         [self sendImage];
         return YES;
+    }
+    else if (self.item.shareType == SHKShareTypeFile && self.item.data != nil)
+    {
+        [self sendData];
     }
     else
     {
@@ -317,6 +365,37 @@ static NSString *const kSHKStoredItemImagePathsKey = @"imagePaths";
                                       andDelegate:self];
  }
 
+- (void) sendData
+{
+    if (self.item.data != nil)
+    {
+        [self sendDidStart];
+        [self sendData:self.item.data forItem:self.item];
+    }
+}
+
+- (void) sendData:(NSData*)data forItem:(SHKItem*)anItem
+{
+    NSMutableDictionary *params = [NSMutableDictionary dictionary];
+    if (item.title)
+    {
+        [params setObject:item.title forKey:@"caption"];
+    }
+    if (item.text)
+    {
+        [params setObject:item.text forKey:@"message"];
+    }
+
+    // TODO: handle non-image data properly here.
+    [params setObject:data forKey:@"picture"];
+    
+    // There does not appear to be a way to add the photo
+    // via the dialog option:
+    [[SHKFacebook facebook] requestWithGraphPath:@"me/photos"
+                                       andParams:params
+                                   andHttpMethod:@"POST"
+                                     andDelegate:self];
+}
 
 #pragma mark -
 #pragma mark FBDialogDelegate methods
@@ -370,6 +449,7 @@ static NSString *const kSHKStoredItemImagePathsKey = @"imagePaths";
         self.item = [SHKItem itemFromDictionary:storedItem];
         NSString *imagePath = [storedItem objectForKey:kSHKStoredItemImagePathKey];
         NSArray *imagePaths = [storedItem objectForKey:kSHKStoredItemImagePathsKey];
+        NSString *dataPath  = [storedItem objectForKey:kSHKStoredItemDataPathKey];
         if (imagePath != nil)
         {
             self.item.image = [SHKFacebook storedImage:imagePath];
@@ -382,6 +462,10 @@ static NSString *const kSHKStoredItemImagePathsKey = @"imagePaths";
                 [images addObject:[SHKFacebook storedImage:p]];
             }
             self.item.images = images;
+        }
+        else if (dataPath != nil)
+        {
+            self.item.data = [SHKFacebook storedData:dataPath];
         }
         [defaults removeObjectForKey:kSHKStoredItemKey];
     }
@@ -403,14 +487,14 @@ static NSString *const kSHKStoredItemImagePathsKey = @"imagePaths";
 {
     if ([aRequest.url rangeOfString:@"me/photos"].location != NSNotFound)
     {
-        if (item.image != nil || (item.images != nil && self.sendImageIndex == (item.images.count - 1)))
-        {
-            [self sendDidFinish];
-        }
-        else
+        if (self.item.images != nil && self.sendImageIndex != (self.item.images.count - 1))
         {
             self.sendImageIndex++;
             [self sendImage:[item.images objectAtIndex:self.sendImageIndex] forItem:item];
+        }
+        else
+        {
+            [self sendDidFinish];
         }
     }
 }
