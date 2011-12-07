@@ -98,6 +98,11 @@
 	return NO;
 }
 
++ (BOOL)canShareFiles
+{
+    return NO;
+}
+
 + (BOOL)shareRequiresInternetConnection
 {
 	return YES;
@@ -136,6 +141,10 @@
 		case SHKShareTypeFile:
 			return [self canShareFile];
 			break;
+            
+        case SHKShareTypeFiles:
+            return [self canShareFiles];
+            break;
 			
 		default: 
 			return NO;
@@ -576,27 +585,32 @@
 
 - (BOOL)validateItem
 {
-	switch (item.shareType) 
+	switch (self.item.shareType) 
 	{
 		case SHKShareTypeURL:
-			return (item.URL != nil);
+			return (self.item.URL != nil);
 			break;			
 			
 		case SHKShareTypeImage:
-			return (item.image != nil);
+			return (self.item.image != nil);
 			break;			
 			
 		case SHKShareTypeImages:
-			return (item.images != nil);
+			return (self.item.images != nil);
 			break;			
 			
 		case SHKShareTypeText:
-			return (item.text != nil);
+			return (self.item.text != nil);
 			break;
 			
 		case SHKShareTypeFile:
-			return (item.data != nil);
+			return (self.item.data != nil);
 			break;
+            
+        case SHKShareTypeFiles:
+            return (self.item.dataItems != nil && self.item.dataItems.count > 0);
+            break;
+        
 		case SHKShareTypeUndefined:
 			default:
 				break;

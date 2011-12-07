@@ -79,6 +79,11 @@ NSString *const SHKMailRecipientsKey = @"SHKMailRecipientsKey";
 	return YES;
 }
 
++ (BOOL)canShareFiles
+{
+    return YES;
+}
+
 + (BOOL)shareRequiresInternetConnection
 {
 	return NO;
@@ -165,6 +170,20 @@ NSString *const SHKMailRecipientsKey = @"SHKMailRecipientsKey";
 				body = attachedStr;
             }
 		}
+        
+        if (self.item.dataItems)
+        {
+			NSString *attachedStr = SHKLocalizedString(@"Attached: %@ (%i)", self.item.title ? self.item.title : self.item.filename, self.item.dataItems.count);
+			
+			if (body != nil)
+            {
+				body = [body stringByAppendingFormat:@"<br/><br/>%@", attachedStr];
+            }
+			else
+            {
+				body = attachedStr;
+            }
+        }
 		
 		// fallback
 		if (body == nil)
@@ -186,6 +205,19 @@ NSString *const SHKMailRecipientsKey = @"SHKMailRecipientsKey";
 	if (self.item.data)
     {
 		[mailController addAttachmentData:self.item.data mimeType:self.item.mimeType fileName:self.item.filename];
+    }
+    
+    if (self.item.dataItems != nil)
+    {
+        NSUInteger i = 1;
+        NSArray *filenameComps = [self.item.filename componentsSeparatedByString:@"."];
+        for (NSData *data in self.item.dataItems)
+        {
+            [mailController addAttachmentData:data
+                                     mimeType:self.item.mimeType
+                                     fileName:[NSString stringWithFormat:@"%@-%i.%@",
+                                               [filenameComps objectAtIndex:0], i, [filenameComps objectAtIndex:1]]];
+        }
     }
 	
     NSString *imageMimeType = @"image/jpeg";

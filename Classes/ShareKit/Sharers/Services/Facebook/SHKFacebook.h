@@ -40,5 +40,6 @@
 
 + (BOOL)handleOpenURL:(NSURL*)url;
 - (void)sendImage;
+- (void)sendData;
 
 @end

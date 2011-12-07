@@ -26,7 +26,7 @@
 //
 
 #import "SHKCopy.h"
-
+#import <MobileCoreServices/MobileCoreServices.h>
 
 @implementation SHKCopy
 
@@ -51,6 +51,16 @@
 + (BOOL)canShareImages
 {
 	return YES;
+}
+
++ (BOOL)canShareFile
+{
+    return YES;
+}
+
++ (BOOL)canShareFiles
+{
+    return YES;
 }
 
 + (BOOL)shareRequiresInternetConnection
@@ -94,6 +104,22 @@
             break;
         
         case SHKShareTypeFile:
+            // TODO: map item mimeType to UTI.
+            [generalPasteboard setData:self.item.data forPasteboardType:(NSString*)kUTTypeJPEG];
+            break;
+            
+        case SHKShareTypeFiles:
+            {
+                // TODO: map item mimeType to UTI.
+                NSMutableArray *items = [NSMutableArray arrayWithCapacity:self.item.dataItems.count];
+                for (NSData *data in self.item.dataItems)
+                {
+                    [items addObject:[NSDictionary dictionaryWithObjectsAndKeys:data, (NSString*)kUTTypeJPEG, nil]];
+                }
+                generalPasteboard.items = items;
+            }
+            break;
+            
         case SHKShareTypeText:
             // TODO: support these types.
             break;

@@ -40,6 +40,7 @@
 @synthesize URL, image, title, text, tags, data, mimeType, filename;
 @synthesize custom;
 @synthesize images;
+@synthesize dataItems;
 
 - (void)dealloc
 {
@@ -53,6 +54,7 @@
 	[tags release];
 	
 	[data release];
+    [dataItems release];
 	[mimeType release];
 	[filename release];
 	
@@ -121,6 +123,18 @@
 	SHKItem *item = [[SHKItem alloc] init];
 	item.shareType = SHKShareTypeFile;
 	item.data = data;
+	item.filename = filename;
+	item.mimeType = mimeType;
+	item.title = title;
+	
+	return [item autorelease];
+}
+
++ (SHKItem *)files:(NSArray *)dataItems filename:(NSString *)filename mimeType:(NSString *)mimeType title:(NSString *)title
+{
+	SHKItem *item = [[SHKItem alloc] init];
+	item.shareType = SHKShareTypeFiles;
+	item.dataItems = dataItems;
 	item.filename = filename;
 	item.mimeType = mimeType;
 	item.title = title;

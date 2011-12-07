@@ -34,7 +34,8 @@ typedef enum
 	SHKShareTypeText,
 	SHKShareTypeImage,
 	SHKShareTypeImages,
-	SHKShareTypeFile
+	SHKShareTypeFile,
+    SHKShareTypeFiles
 } SHKShareType;
 
 
@@ -52,6 +53,7 @@ typedef enum
 	NSString *tags;
 	
 	NSData *data;
+    NSArray *dataItems;
 	NSString *mimeType;
 	NSString *filename;
 	
@@ -71,6 +73,7 @@ typedef enum
 @property (nonatomic, retain)	NSString *tags;
 
 @property (nonatomic, retain)	NSData *data;
+@property (nonatomic, retain)   NSArray *dataItems;
 @property (nonatomic, retain)	NSString *mimeType;
 @property (nonatomic, retain)	NSString *filename;
 
@@ -79,6 +82,7 @@ typedef enum
 + (SHKItem *)images:(NSArray *)images title:(NSString *)title;
 + (SHKItem *)text:(NSString *)text;
 + (SHKItem *)file:(NSData *)data filename:(NSString *)filename mimeType:(NSString *)mimeType title:(NSString *)title;
++ (SHKItem *)files:(NSArray *)dataItems filename:(NSString *)filename mimeType:(NSString *)mimeType title:(NSString *)title;
 
 - (void)setCustomValue:(id)value forKey:(NSString *)key;
 - (id)customValueForKey:(NSString *)key;

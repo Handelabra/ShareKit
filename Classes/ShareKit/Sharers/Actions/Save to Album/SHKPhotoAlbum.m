@@ -26,12 +26,7 @@
 //
 
 #import "SHKPhotoAlbum.h"
-
-@interface SHKPhotoAlbum ()
-
-- (void)image:(UIImage*)image didFinishSavingWithError:(NSError*)error contextInfo:(void*)contextInfo;
-
-@end
+#import <AssetsLibrary/AssetsLibrary.h>
 
 @implementation SHKPhotoAlbum
 
@@ -51,6 +46,16 @@
 + (BOOL)canShareImages
 {
 	return YES;
+}
+
++ (BOOL)canShareFile
+{
+    return YES;
+}
+
++ (BOOL)canShareFiles
+{
+    return YES;
 }
 
 + (BOOL)shareRequiresInternetConnection
@@ -80,36 +85,56 @@
 {	
     [self sendDidStart];
     
-	if (item.shareType == SHKShareTypeImage)
-    {
-		UIImageWriteToSavedPhotosAlbum(item.image, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
-    }
-    else if (item.shareType == SHKShareTypeImages)
-    {
-        for (UIImage *image in item.images)
+    ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
+    
+    ALAssetsLibraryWriteImageCompletionBlock completion = ^(NSURL *assetURL, NSError *error) {
+        // Notify user
+        [[SHKActivityIndicator currentIndicator] displayCompleted:SHKLocalizedString(@"Saved!")];
+        
+        // Notify delegate, but quietly
+        self.quiet = YES;
+        [self sendDidFinish];
+        
+        if (error != nil)
         {
-            UIImageWriteToSavedPhotosAlbum(image, self, @selector(image:didFinishSavingWithError:contextInfo:), nil);
+            [self sendDidFailWithError:error];
+        }
+    };
+    
+	if (self.item.shareType == SHKShareTypeImage)
+    {
+        [library writeImageToSavedPhotosAlbum:self.item.image.CGImage
+                                     orientation:(ALAssetOrientation)self.item.image.imageOrientation
+                              completionBlock:completion];
+    }
+    else if (self.item.shareType == SHKShareTypeImages)
+    {
+        for (UIImage *image in self.item.images)
+        {
+            [library writeImageToSavedPhotosAlbum:image.CGImage
+                                      orientation:(ALAssetOrientation)self.item.image.imageOrientation
+                                  completionBlock:completion];
+        }
+    }
+    else if (self.item.data != nil)
+    {
+        [library writeImageDataToSavedPhotosAlbum:self.item.data
+                                         metadata:nil
+                                  completionBlock:completion];
+    }
+    else if (self.item.dataItems != nil && self.item.dataItems.count > 0)
+    {
+        for (NSData *data in self.item.dataItems)
+        {
+            [library writeImageDataToSavedPhotosAlbum:data
+                                             metadata:nil
+                                      completionBlock:completion];
         }
     }
     
-	// Notify user
-	[[SHKActivityIndicator currentIndicator] displayCompleted:SHKLocalizedString(@"Saved!")];
-	
-	// Notify delegate, but quietly
-	self.quiet = YES;
-	[self sendDidFinish];
+    [library release];
 	
 	return YES;
-}
-
-#pragma mark - UIImageWriteToSavedPhotosAlbum completion method
-
-- (void)image:(UIImage*)image didFinishSavingWithError:(NSError*)error contextInfo:(void*)contextInfo
-{
-    if (error != nil)
-    {
-        [self sendDidFailWithError:error];
-    }
 }
 
 @end

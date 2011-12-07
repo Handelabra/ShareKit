@@ -63,6 +63,11 @@ NSString *kGetPrivacy = @"kGetPrivacy";
     return YES;
 }
 
++ (BOOL) canShareFile
+{
+    return YES;
+}
+
 + (BOOL)canShare
 {
 	return YES;
@@ -129,16 +134,25 @@ NSString *kGetPrivacy = @"kGetPrivacy";
 
 - (void)sendPhoto {
 	
-    if (item.image != nil)
+    if (self.item.image != nil)
     {
         [self sendDidStart];
-        [self sendPhoto:item.image filename:item.title];
+        [self sendPhoto:self.item.image filename:self.item.title];
     }
-    else if (item.images != nil)
+    else if (self.item.images != nil)
     {
         [self sendDidStart];
         self.sendImageIndex = 0;
-        [self sendPhoto:[item.images objectAtIndex:self.sendImageIndex] filename:item.title];
+        [self sendPhoto:[self.item.images objectAtIndex:self.sendImageIndex] filename:self.item.title];
+    }
+    else if (self.item.data != nil)
+    {
+        [self sendDidStart];
+        self.flickrRequest.sessionInfo = kUploadImageStep;
+        [self.flickrRequest uploadImageStream:[NSInputStream inputStreamWithData:self.item.data]
+                            suggestedFilename:self.item.filename
+                                     MIMEType:self.item.mimeType
+                                    arguments:self.privacySettings];	
     }
 }
 
@@ -147,7 +161,10 @@ NSString *kGetPrivacy = @"kGetPrivacy";
 	NSData *JPEGData = UIImageJPEGRepresentation(photo, 1.0);
 	
 	self.flickrRequest.sessionInfo = kUploadImageStep;
-	[self.flickrRequest uploadImageStream:[NSInputStream inputStreamWithData:JPEGData] suggestedFilename:filename MIMEType:@"image/jpeg" arguments:self.privacySettings];	
+	[self.flickrRequest uploadImageStream:[NSInputStream inputStreamWithData:JPEGData]
+                        suggestedFilename:filename
+                                 MIMEType:@"image/jpeg"
+                                arguments:self.privacySettings];	
 }
 
 - (NSURL *)authorizeCallbackURL {
@@ -222,16 +239,16 @@ NSString *kGetPrivacy = @"kGetPrivacy";
         [self sendPhoto];
     }
 	else if (inRequest.sessionInfo == kSetImagePropertiesStep) {
-        if (item.image != nil || (item.images != nil && self.sendImageIndex == (item.images.count-1)))
+        if (self.item.images != nil && self.sendImageIndex != (item.images.count-1))
+        {
+            self.sendImageIndex += 1;
+            [self sendPhoto:[item.images objectAtIndex:self.sendImageIndex] filename:item.title];
+        }
+        else
         {
             [[SHKActivityIndicator currentIndicator] displayCompleted:SHKLocalizedString(@"Uploaded to %@", self.sharerTitle)];
             
             [self sendDidFinish];
-        }
-        else
-        {
-            self.sendImageIndex += 1;
-            [self sendPhoto:[item.images objectAtIndex:self.sendImageIndex] filename:item.title];
         }
 	}
 	else {
