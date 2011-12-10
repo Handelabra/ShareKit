@@ -35,6 +35,8 @@ NSString *kUploadImageStep = @"kUploadImageStep";
 NSString *kSetImagePropertiesStep = @"kSetImagePropertiesStep";
 NSString *kGetPrivacy = @"kGetPrivacy";
 
+static NSString *const SHKFlickrWantsFreshLoginKey = @"SHKFlickrWantsFreshLogin";
+
 @interface SHKFlickr ()
 
 - (void)sendPhoto:(UIImage*)photo filename:(NSString*)filename;
@@ -106,11 +108,24 @@ NSString *kGetPrivacy = @"kGetPrivacy";
 + (void)logout
 {
 	[SHK removeAuthValueForKey:kStoredAuthTokenKeyName forSharer:[self sharerId]];
+    
+    // Set wants fresh login.
+    [[NSUserDefaults standardUserDefaults] setBool:YES forKey:SHKFlickrWantsFreshLoginKey];
+    [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
 - (void)authorizationFormShow 
 {	
 	NSURL *loginURL = [self.flickrContext loginURLFromFrobDictionary:nil requestedPermission:OFFlickrWritePermission];
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:SHKFlickrWantsFreshLoginKey])
+    {
+        // Force fresh login, otherwise login will use previous user credentials.
+        // See following links:
+        // http://osdir.com/ml/web.flickr.api/2006-05/msg00041.html
+        // http://www.flickr.com/groups/api/discuss/72157623363604386/
+        // https://github.com/ShareKit/ShareKit/issues/114
+        loginURL = [loginURL URLByAppendingPathComponent:@"fresh"];
+    }
 	SHKOAuthView *auth = [[SHKOAuthView alloc] initWithURL:loginURL delegate:self];
     auth.title = SHKLocalizedString(@"Flickr Login");
 	[[SHK currentHelper] showViewController:auth];	
