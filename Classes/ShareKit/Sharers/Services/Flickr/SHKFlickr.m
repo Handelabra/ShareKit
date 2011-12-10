@@ -112,6 +112,7 @@ NSString *kGetPrivacy = @"kGetPrivacy";
 {	
 	NSURL *loginURL = [self.flickrContext loginURLFromFrobDictionary:nil requestedPermission:OFFlickrWritePermission];
 	SHKOAuthView *auth = [[SHKOAuthView alloc] initWithURL:loginURL delegate:self];
+    auth.title = SHKLocalizedString(@"Flickr Login");
 	[[SHK currentHelper] showViewController:auth];	
 	[auth release];
 }
