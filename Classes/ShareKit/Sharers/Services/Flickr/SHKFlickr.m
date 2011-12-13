@@ -35,8 +35,6 @@ NSString *kUploadImageStep = @"kUploadImageStep";
 NSString *kSetImagePropertiesStep = @"kSetImagePropertiesStep";
 NSString *kGetPrivacy = @"kGetPrivacy";
 
-static NSString *const SHKFlickrWantsFreshLoginKey = @"SHKFlickrWantsFreshLogin";
-
 @interface SHKFlickr ()
 
 - (void)sendPhoto:(UIImage*)photo filename:(NSString*)filename;
@@ -109,23 +107,20 @@ static NSString *const SHKFlickrWantsFreshLoginKey = @"SHKFlickrWantsFreshLogin"
 {
 	[SHK removeAuthValueForKey:kStoredAuthTokenKeyName forSharer:[self sharerId]];
     
-    // Set wants fresh login.
-    [[NSUserDefaults standardUserDefaults] setBool:YES forKey:SHKFlickrWantsFreshLoginKey];
-    [[NSUserDefaults standardUserDefaults] synchronize];
+    // Delete any cookies for login url to force fresh login.
+    SHKFlickr *flickr = [[SHKFlickr alloc] init];
+	NSURL *loginURL = [flickr.flickrContext loginURLFromFrobDictionary:nil requestedPermission:OFFlickrWritePermission];
+    [flickr release];
+    NSArray *cookies = [[NSHTTPCookieStorage sharedHTTPCookieStorage] cookiesForURL:loginURL];
+    for (NSHTTPCookie *cookie in cookies)
+    {
+        [[NSHTTPCookieStorage sharedHTTPCookieStorage] deleteCookie:cookie];
+    }
 }
 
 - (void)authorizationFormShow 
 {	
 	NSURL *loginURL = [self.flickrContext loginURLFromFrobDictionary:nil requestedPermission:OFFlickrWritePermission];
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:SHKFlickrWantsFreshLoginKey])
-    {
-        // Force fresh login, otherwise login will use previous user credentials.
-        // See following links:
-        // http://osdir.com/ml/web.flickr.api/2006-05/msg00041.html
-        // http://www.flickr.com/groups/api/discuss/72157623363604386/
-        // https://github.com/ShareKit/ShareKit/issues/114
-        loginURL = [loginURL URLByAppendingPathComponent:@"fresh"];
-    }
 	SHKOAuthView *auth = [[SHKOAuthView alloc] initWithURL:loginURL delegate:self];
     auth.title = SHKLocalizedString(@"Flickr Login");
 	[[SHK currentHelper] showViewController:auth];	
