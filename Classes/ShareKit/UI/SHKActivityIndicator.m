@@ -34,8 +34,10 @@
 
 @synthesize centerMessageLabel, subMessageLabel;
 @synthesize spinner;
+@synthesize supportsOrientationChanges;
 
 static SHKActivityIndicator *currentIndicator = nil;
+static SHKActivityIndicator *nonRotatingIndicator = nil;
 
 
 + (SHKActivityIndicator *)currentIndicator
@@ -65,6 +67,44 @@ static SHKActivityIndicator *currentIndicator = nil;
 		
 		[currentIndicator setProperRotation:NO];
 		
+        currentIndicator.supportsOrientationChanges = YES;
+		[[NSNotificationCenter defaultCenter] addObserver:currentIndicator
+												 selector:@selector(setProperRotation)
+													 name:UIDeviceOrientationDidChangeNotification
+												   object:nil];
+	}
+	
+	return currentIndicator;
+}
+
++ (SHKActivityIndicator *)nonRotatingIndicator
+{
+	if (currentIndicator == nil)
+	{
+		UIWindow *keyWindow = [[UIApplication sharedApplication] keyWindow];
+		
+		CGFloat width = 160;
+		CGFloat height = 160;
+		CGRect centeredFrame = CGRectMake((CGFloat)(round(keyWindow.bounds.size.width/2 - width/2)),
+										  (CGFloat)(round(keyWindow.bounds.size.height/2 - height/2)),
+										  width,
+										  height);
+		
+		currentIndicator = [[SHKActivityIndicator alloc] initWithFrame:centeredFrame];
+		
+		currentIndicator.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.5];
+		currentIndicator.opaque = NO;
+		currentIndicator.alpha = 0;
+		
+		currentIndicator.layer.cornerRadius = 10;
+		
+		currentIndicator.userInteractionEnabled = NO;
+		currentIndicator.autoresizesSubviews = YES;
+		currentIndicator.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin |  UIViewAutoresizingFlexibleTopMargin |  UIViewAutoresizingFlexibleBottomMargin;
+		
+		[currentIndicator setProperRotation:NO];
+		
+        currentIndicator.supportsOrientationChanges = NO;
 		[[NSNotificationCenter defaultCenter] addObserver:currentIndicator
 												 selector:@selector(setProperRotation)
 													 name:UIDeviceOrientationDidChangeNotification
@@ -253,28 +293,31 @@ static SHKActivityIndicator *currentIndicator = nil;
 
 - (void)setProperRotation:(BOOL)animated
 {
-	UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
-	
-	if (animated)
-	{
-		[UIView beginAnimations:nil context:NULL];
-		[UIView setAnimationDuration:0.3];
-	}
-	
-	if (orientation == UIDeviceOrientationPortraitUpsideDown)
-		self.transform = CGAffineTransformRotate(CGAffineTransformIdentity, (CGFloat)SHKdegreesToRadians(180));	
+    if (self.supportsOrientationChanges)
+    {
+        UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
+        
+        if (animated)
+        {
+            [UIView beginAnimations:nil context:NULL];
+            [UIView setAnimationDuration:0.3];
+        }
+        
+        if (orientation == UIDeviceOrientationPortraitUpsideDown)
+            self.transform = CGAffineTransformRotate(CGAffineTransformIdentity, (CGFloat)SHKdegreesToRadians(180));	
 		
-	else if (orientation == UIDeviceOrientationPortrait)
-		self.transform = CGAffineTransformRotate(CGAffineTransformIdentity, (CGFloat)SHKdegreesToRadians(0)); 
-	
-	else if (orientation == UIDeviceOrientationLandscapeLeft)
-		self.transform = CGAffineTransformRotate(CGAffineTransformIdentity, (CGFloat)SHKdegreesToRadians(90));	
-	
-	else if (orientation == UIDeviceOrientationLandscapeRight)
-		self.transform = CGAffineTransformRotate(CGAffineTransformIdentity, (CGFloat)SHKdegreesToRadians(-90));
-	
-	if (animated)
-		[UIView commitAnimations];
+        else if (orientation == UIDeviceOrientationPortrait)
+            self.transform = CGAffineTransformRotate(CGAffineTransformIdentity, (CGFloat)SHKdegreesToRadians(0)); 
+        
+        else if (orientation == UIDeviceOrientationLandscapeLeft)
+            self.transform = CGAffineTransformRotate(CGAffineTransformIdentity, (CGFloat)SHKdegreesToRadians(90));	
+        
+        else if (orientation == UIDeviceOrientationLandscapeRight)
+            self.transform = CGAffineTransformRotate(CGAffineTransformIdentity, (CGFloat)SHKdegreesToRadians(-90));
+        
+        if (animated)
+            [UIView commitAnimations];
+    }
 }
 
 

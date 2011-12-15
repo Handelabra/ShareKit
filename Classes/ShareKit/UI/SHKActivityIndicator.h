@@ -41,8 +41,11 @@
 
 @property (nonatomic, retain) UIActivityIndicatorView *spinner;
 
+@property (nonatomic, assign) BOOL supportsOrientationChanges;
+
 
 + (SHKActivityIndicator *)currentIndicator;
++ (SHKActivityIndicator *)nonRotatingIndicator;
 
 - (void)show;
 - (void)hideAfterDelay;
