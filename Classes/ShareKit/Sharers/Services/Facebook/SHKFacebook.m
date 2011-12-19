@@ -309,6 +309,7 @@ static NSString *const kSHKStoredItemDataPathKey = @"dataPath";
     else if (self.item.shareType == SHKShareTypeFile && self.item.data != nil)
     {
         [self sendData];
+        return YES;
     }
     else
     {
