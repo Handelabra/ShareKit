@@ -37,8 +37,6 @@
 @synthesize supportsOrientationChanges;
 
 static SHKActivityIndicator *currentIndicator = nil;
-static SHKActivityIndicator *nonRotatingIndicator = nil;
-
 
 + (SHKActivityIndicator *)currentIndicator
 {
@@ -79,39 +77,8 @@ static SHKActivityIndicator *nonRotatingIndicator = nil;
 
 + (SHKActivityIndicator *)nonRotatingIndicator
 {
-	if (currentIndicator == nil)
-	{
-		UIWindow *keyWindow = [[UIApplication sharedApplication] keyWindow];
-		
-		CGFloat width = 160;
-		CGFloat height = 160;
-		CGRect centeredFrame = CGRectMake((CGFloat)(round(keyWindow.bounds.size.width/2 - width/2)),
-										  (CGFloat)(round(keyWindow.bounds.size.height/2 - height/2)),
-										  width,
-										  height);
-		
-		currentIndicator = [[SHKActivityIndicator alloc] initWithFrame:centeredFrame];
-		
-		currentIndicator.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.5];
-		currentIndicator.opaque = NO;
-		currentIndicator.alpha = 0;
-		
-		currentIndicator.layer.cornerRadius = 10;
-		
-		currentIndicator.userInteractionEnabled = NO;
-		currentIndicator.autoresizesSubviews = YES;
-		currentIndicator.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin |  UIViewAutoresizingFlexibleTopMargin |  UIViewAutoresizingFlexibleBottomMargin;
-		
-		[currentIndicator setProperRotation:NO];
-		
-        currentIndicator.supportsOrientationChanges = NO;
-		[[NSNotificationCenter defaultCenter] addObserver:currentIndicator
-												 selector:@selector(setProperRotation)
-													 name:UIDeviceOrientationDidChangeNotification
-												   object:nil];
-	}
-	
-	return currentIndicator;
+    [[SHKActivityIndicator currentIndicator] setSupportsOrientationChanges:NO];
+	return [SHKActivityIndicator currentIndicator];
 }
 
 #pragma mark -
@@ -130,9 +97,13 @@ static SHKActivityIndicator *nonRotatingIndicator = nil;
 #pragma mark Creating Message
 
 - (void)show
-{	
-	if ([self superview] != [[UIApplication sharedApplication] keyWindow]) 
-		[[[UIApplication sharedApplication] keyWindow] addSubview:self];
+{
+	[self setProperRotation:NO];
+    
+    if ([self superview] != [[UIApplication sharedApplication] keyWindow])
+    {
+        [[[UIApplication sharedApplication] keyWindow] addSubview:self];
+    }
 	
 	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(hide) object:nil];
 	
@@ -320,5 +291,9 @@ static SHKActivityIndicator *nonRotatingIndicator = nil;
     }
 }
 
+- (void)setToPortaitOrientation:(BOOL)animated
+{
+    
+}
 
 @end
