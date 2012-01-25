@@ -30,6 +30,7 @@
 #import <MessageUI/MessageUI.h>
 
 extern NSString *const SHKMailRecipientsKey;
+extern NSString *const SHKMailShowAttachedTextKey;
 
 @interface MFMailComposeViewController (SHK)
 - (void)SHKviewDidDisappear:(BOOL)animated;

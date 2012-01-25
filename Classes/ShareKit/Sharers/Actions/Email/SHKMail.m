@@ -28,6 +28,7 @@
 #import "SHKMail.h"
 
 NSString *const SHKMailRecipientsKey = @"SHKMailRecipientsKey";
+NSString *const SHKMailShowAttachedTextKey = @"SHKMailShowAttachedTextKey";
 
 @implementation MFMailComposeViewController (SHK)
 
@@ -157,7 +158,9 @@ NSString *const SHKMailRecipientsKey = @"SHKMailRecipientsKey";
             }
 		}
 		
-		if (self.item.data)
+        NSNumber *showAttachedTextCustom = [self.item customValueForKey:SHKMailShowAttachedTextKey];
+        BOOL showAttachedText = (showAttachedTextCustom == nil || [showAttachedTextCustom boolValue] == YES);
+		if (self.item.data && showAttachedText)
 		{
 			NSString *attachedStr = SHKLocalizedString(@"Attached: %@", self.item.title ? self.item.title : self.item.filename);
 			
@@ -171,7 +174,7 @@ NSString *const SHKMailRecipientsKey = @"SHKMailRecipientsKey";
             }
 		}
         
-        if (self.item.dataItems)
+        if (self.item.dataItems && showAttachedText)
         {
 			NSString *attachedStr = SHKLocalizedString(@"Attached: %@ (%i)", self.item.title ? self.item.title : self.item.filename, self.item.dataItems.count);
 			
