@@ -1,0 +1,91 @@
+"Email" = "Email";
+"Username" = "Ονομα Χρήστη";
+"Password" = "Κωδικός";
+"Follow %@" = "Follow %@";
+"Continue" = "Συνέχεια";
+"Share" = "Μοίρασε το";
+"More..." = "Περισσότερα";
+"Cancel" = "Ακύρωση";
+"Slug" = "Γυμνοσάλιαγκας";
+"Private" = "Ιδιωτικό";
+"Public" = "Δημόσιο";
+"Caption" = "Επικεφαλίδα";
+"Title" = "Τίτλος";
+"Tags" = "Ετικέτες";
+"Close" = "Κλείσε";
+"Notes" = "Σημειώσεις";
+"Note" = "Σημείωση";
+"Share" = "Μοίρασε το";
+"Shared" = "Μοιράστηκε";
+"Edit" = "Διόρθωση";
+"Actions" = "Ενέργειες";
+"Services" = "Υπηρεσίες";
+"Send to %@" = "Αποστολή προς %@";
+"Copy" = "Αντιγραφή";
+"Copied!" = "Αντιγράφτηκε!";
+"Saving to %@" = "Αποθήκευση προς %@";
+"Saved!" = "Αποθηκεύτηκε!";
+"Offline" = "Aποσυνδεμένος";
+"Error" = "Σφάλμα";
+"Login" = "Είσοδος";
+"Logging In..." = "Εκτελείται Είσοδος...";
+"Login Error" = "Σφάλμα Εισόδου";
+"Connecting..." = "Εκτελείται Σύνδεση...";
+
+"Shortening URL..." = "Σύμπτυξη URL...";
+"Shorten URL Error" = "Σφάλμα Σύμπτυξης URL";
+"We could not shorten the URL." = "Δεν μπορέσαμε να συμπτύξουμε το URL.";
+
+"Create a free account at %@" = "Φτιάξε ένα δωρεάν λογαριασμό στο %@";
+"Create an account at %@" = "Φτιάξε ένα λογαριασμό στο %@";
+
+"Send to Twitter" = "Αποστολή προς Twitter";
+
+"Message is too long" = "Το μήνυμα είναι πολύ μεγάλο";
+"Twitter posts can only be 140 characters in length." = "Οι απαντήσεις στο Twitter μπορούν να είναι μέχρι 140 χαρακτήρες.";
+"Message is empty" = "Το μήνυμα είναι κενό";
+"You must enter a message in order to post." = "Πρέπει να εισάγεις ένα μήνυμα για να απαντήσεις.";
+
+"Enter your message:" = "Πληκτρολόγησε το μήνυμα σου:";
+
+"Invalid email or password." = "Μη Αποδεκτό email ή κωδικός.";
+"The service encountered an error. Please try again later." = "Η υπηρεσία παρουσίασε ένα σφάλμα. Παρακαλώ δοκίμασε πάλι αργότερα.";
+"There was a sending your post to Tumblr." = "Υπήρξε μια αποστολή της απάντησης σου στο Tumbir.";
+
+"There was an error saving to Pinboard" = "Υπήρξε ένα σφάλμα κατά την αποθήκευση στο Pinboard";
+
+"Sorry, Instapaper did not accept your credentials. Please try again." = "Λυπάμαι, το Instapaper δεν έκανε δεκτά τα στοιχεία σου. Παρακαλώ δοκίμασε πάλι.";
+"Sorry, Instapaper encountered an error. Please try again." = "Λυπάμαι, το Instapaper παρουσίασε ένα σφάλμα. Παρακαλώ δοκίμασε πάλι.";
+"There was a problem saving to Instapaper." = "Υπήρξε ένα πρόβλημα κατά την αποθήκευση στο Instapaper.";
+
+"Incorrect username and password" = "Λανθασμένο Ονομα Χρήστη και Κωδικός";
+"There was an error logging into Google Reader" = "Υπήρξε ένα σφάλμα κατά την είσοδο στο Google Reader";
+"There was a problem authenticating your account." = "Υπήρξε ένα πρόβλημα κατά την ταυτοποίηση του λογαριασμού σου.";
+"There was a problem saving your note." = "Υπήρξε ένα πρόβλημα κατά την αποθήκευση της σημείωσης σου.";
+
+"There was a problem saving to Delicious." = "Υπήρξε ένα πρόβλημα κατά την αποθήκευση στο Delicious.";
+
+"Open in Safari" = "Ανοιγμα στο Safari";
+"Attached: %@" = "Επισυνάπτεται: %@";
+
+"You must be online to login to %@" = "Πρέπει να είσαι συνδεμένος για να εισέλθεις στο %@";
+
+"Auto Share" = "Αυτόματο \"Μοίρασε το\"";
+"Enable auto share to skip this step in the future." = "Ενεργοποίησε το αυτόματο \"μοίρασε το\" για να παρακάμψεις αυτό το βήμα στο μέλλον.";
+
+"You must be online in order to share with %@" = "Πρέπει να είσαι συνδεμένος για να μοιραστείς με %@";
+"There was an error while sharing" = "Υπήρξε ένα σφάλμα κατά το μοίρασμα";
+
+"Could not authenticate you. Please relogin." = "Δεν ήταν δυνατό να ταυτοποιηθείς. Παρακαλώ κάνε επανείσοδο.";
+"There was a problem requesting authorization from %@" = "Υπήρξε ένα πρόβλημα κατά το αίτημα εξουσιοδότησης από %@";
+"Request Error" = "Σφάλμα Αιτήματος";
+"There was an error while sharing" = "Υπήρξε ένα σφάλμα κατά το μοίρασμα";
+
+"Authorize Error" = "Σφάλμα Εξουσιοδότησης";
+"There was an error while authorizing" = "Υπήρξε ένα σφάλμα κατά την εξουσιοδότηση";
+
+"Authenticating..." = "Εκτελείται Ταυτοποίηση...";
+"There was a problem requesting access from %@" = "Υπήρξε ένα πρόβλημα κατά το αίτημα πρόσβασης από %@";
+
+"Access Error" = "Σφάλμα Πρόσβασης";
+"There was an error while sharing" = "Υπήρξε ένα σφάλμα κατά το μοίρασμα";
