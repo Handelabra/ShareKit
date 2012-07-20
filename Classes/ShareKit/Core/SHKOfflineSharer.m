@@ -104,7 +104,7 @@
 	else if (item.shareType == SHKShareTypeFile)						
 	{
 		path = [[SHK offlineQueueListPath] stringByAppendingPathComponent:uid];
-		sharer.item.data = [NSData dataWithContentsOfFile:[[SHK offlineQueuePath] stringByAppendingPathComponent:uid]];
+		sharer.item.data = [[[NSData alloc] initWithContentsOfFile:[[SHK offlineQueuePath] stringByAppendingPathComponent:uid]] autorelease];
 		[[NSFileManager defaultManager] removeItemAtPath:path error:nil]; 
 
 	}

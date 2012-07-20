@@ -107,12 +107,13 @@ static NSString *const kSHKStoredItemDataPathKey = @"dataPath";
 
 + (UIImage*) storedImage:(NSString*)imagePath
 {
-    NSData *imageData = [NSData dataWithContentsOfFile:imagePath];
+    NSData *imageData = [[NSData alloc] initWithContentsOfFile:imagePath];
     UIImage *image = nil;
 
     if (imageData)
     {
         image = [UIImage imageWithData:imageData];
+        [imageData release];
     }
     // Unlink the stored file:
     [[NSFileManager defaultManager] removeItemAtPath:imagePath error:nil];
@@ -142,7 +143,7 @@ static NSString *const kSHKStoredItemDataPathKey = @"dataPath";
 
 + (NSData*) storedData:(NSString*)dataPath
 {
-    NSData *data = [NSData dataWithContentsOfFile:dataPath];
+    NSData *data = [[[NSData alloc] initWithContentsOfFile:dataPath] autorelease];
     // Unlink the stored file:
     [[NSFileManager defaultManager] removeItemAtPath:dataPath error:nil];
     return data;
