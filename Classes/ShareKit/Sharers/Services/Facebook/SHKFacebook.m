@@ -96,7 +96,7 @@ static NSString *const kSHKStoredItemDataPathKey = @"dataPath";
         [fileManager createDirectoryAtPath:imagePath withIntermediateDirectories:YES attributes:nil error:nil];
     }
 
-    NSString *uid = [NSString stringWithFormat:@"img-%i-%i", [[NSDate date] timeIntervalSince1970], arc4random()];
+    NSString *uid = [NSString stringWithFormat:@"img-%i-%i", (int)[[NSDate date] timeIntervalSince1970], arc4random()];
     // store image in cache
     NSData *imageData = UIImagePNGRepresentation(image);
     imagePath = [imagePath stringByAppendingPathComponent:uid];
@@ -133,7 +133,7 @@ static NSString *const kSHKStoredItemDataPathKey = @"dataPath";
         [fileManager createDirectoryAtPath:dataPath withIntermediateDirectories:YES attributes:nil error:nil];
     }
     
-    NSString *uid = [NSString stringWithFormat:@"dat-%i-%i", [[NSDate date] timeIntervalSince1970], arc4random()];
+    NSString *uid = [NSString stringWithFormat:@"dat-%i-%i", (int)[[NSDate date] timeIntervalSince1970], arc4random()];
     // store data in cache
     dataPath = [dataPath stringByAppendingPathComponent:uid];
     [data writeToFile:dataPath atomically:YES];
