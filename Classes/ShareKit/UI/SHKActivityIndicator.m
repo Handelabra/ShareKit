@@ -35,6 +35,7 @@
 @synthesize centerMessageLabel, subMessageLabel;
 @synthesize spinner;
 @synthesize supportsOrientationChanges;
+@synthesize indicatorView = _indicatorView;
 
 static SHKActivityIndicator *currentIndicator = nil;
 
@@ -44,24 +45,30 @@ static SHKActivityIndicator *currentIndicator = nil;
 	{
 		UIWindow *keyWindow = [[UIApplication sharedApplication] keyWindow];
 		
-		CGFloat width = 160;
+		currentIndicator = [[SHKActivityIndicator alloc] initWithFrame:keyWindow.bounds];
+        currentIndicator.backgroundColor = [UIColor clearColor];
+        currentIndicator.opaque = NO;
+        currentIndicator.alpha = 0;
+        
+        CGFloat width = 160;
 		CGFloat height = 160;
 		CGRect centeredFrame = CGRectMake((CGFloat)(round(keyWindow.bounds.size.width/2 - width/2)),
 										  (CGFloat)(round(keyWindow.bounds.size.height/2 - height/2)),
 										  width,
 										  height);
 		
-		currentIndicator = [[SHKActivityIndicator alloc] initWithFrame:centeredFrame];
+        
+        currentIndicator.indicatorView = [[[UIView alloc] initWithFrame:centeredFrame] autorelease];
+        [currentIndicator addSubview:currentIndicator.indicatorView];
 		
-		currentIndicator.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.5];
-		currentIndicator.opaque = NO;
-		currentIndicator.alpha = 0;
+		currentIndicator.indicatorView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.5];
+		currentIndicator.indicatorView.opaque = NO;
 		
-		currentIndicator.layer.cornerRadius = 10;
+		currentIndicator.indicatorView.layer.cornerRadius = 10;
 		
-		currentIndicator.userInteractionEnabled = NO;
-		currentIndicator.autoresizesSubviews = YES;
-		currentIndicator.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin |  UIViewAutoresizingFlexibleTopMargin |  UIViewAutoresizingFlexibleBottomMargin;
+		
+		currentIndicator.indicatorView.autoresizesSubviews = YES;
+		currentIndicator.indicatorView.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin |  UIViewAutoresizingFlexibleTopMargin |  UIViewAutoresizingFlexibleBottomMargin;
 		
 		[currentIndicator setProperRotation:NO];
 		
@@ -90,6 +97,7 @@ static SHKActivityIndicator *currentIndicator = nil;
 	[centerMessageLabel release];
 	[subMessageLabel release];
 	[spinner release];
+    [_indicatorView release];
 	
 	[super dealloc];
 }
@@ -103,6 +111,7 @@ static SHKActivityIndicator *currentIndicator = nil;
     if ([self superview] != [[UIApplication sharedApplication] keyWindow])
     {
         [[[UIApplication sharedApplication] keyWindow] addSubview:self];
+        [[[UIApplication sharedApplication] keyWindow] bringSubviewToFront:self];
     }
 	
 	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(hide) object:nil];
@@ -193,7 +202,7 @@ static SHKActivityIndicator *currentIndicator = nil;
 	{
 		if (centerMessageLabel == nil)
 		{
-			self.centerMessageLabel = [[[UILabel alloc] initWithFrame:CGRectMake(12,(CGFloat)(round(self.bounds.size.height/2-50/2)),self.bounds.size.width-24,50)] autorelease];
+			self.centerMessageLabel = [[[UILabel alloc] initWithFrame:CGRectMake(12,(CGFloat)(round(self.indicatorView.bounds.size.height/2-50/2)),self.indicatorView.bounds.size.width-24,50)] autorelease];
 			centerMessageLabel.backgroundColor = [UIColor clearColor];
 			centerMessageLabel.opaque = NO;
 			centerMessageLabel.textColor = [UIColor whiteColor];
@@ -203,7 +212,7 @@ static SHKActivityIndicator *currentIndicator = nil;
 			centerMessageLabel.shadowOffset = CGSizeMake(1,1);
 			centerMessageLabel.adjustsFontSizeToFitWidth = YES;
 			
-			[self addSubview:centerMessageLabel];
+			[self.indicatorView addSubview:centerMessageLabel];
 		}
 		
 		centerMessageLabel.text = message;
@@ -219,7 +228,7 @@ static SHKActivityIndicator *currentIndicator = nil;
 	{
 		if (subMessageLabel == nil)
 		{
-			self.subMessageLabel = [[[UILabel alloc] initWithFrame:CGRectMake(12,self.bounds.size.height-45,self.bounds.size.width-24,30)] autorelease];
+			self.subMessageLabel = [[[UILabel alloc] initWithFrame:CGRectMake(12,self.indicatorView.bounds.size.height-45,self.indicatorView.bounds.size.width-24,30)] autorelease];
 			subMessageLabel.backgroundColor = [UIColor clearColor];
 			subMessageLabel.opaque = NO;
 			subMessageLabel.textColor = [UIColor whiteColor];
@@ -229,7 +238,7 @@ static SHKActivityIndicator *currentIndicator = nil;
 			subMessageLabel.shadowOffset = CGSizeMake(1,1);
 			subMessageLabel.adjustsFontSizeToFitWidth = YES;
 			
-			[self addSubview:subMessageLabel];
+			[self.indicatorView addSubview:subMessageLabel];
 		}
 		
 		subMessageLabel.text = message;
@@ -244,13 +253,13 @@ static SHKActivityIndicator *currentIndicator = nil;
 		self.spinner = tmpSpinner;
 		[tmpSpinner release], tmpSpinner = nil;
 
-		spinner.frame = CGRectMake((CGFloat)(round(self.bounds.size.width/2 - spinner.frame.size.width/2)),
-								(CGFloat)(round(self.bounds.size.height/2 - spinner.frame.size.height/2)),
+		spinner.frame = CGRectMake((CGFloat)(round(self.indicatorView.bounds.size.width/2 - spinner.frame.size.width/2)),
+								(CGFloat)(round(self.indicatorView.bounds.size.height/2 - spinner.frame.size.height/2)),
 								spinner.frame.size.width,
 								spinner.frame.size.height);
 	}
 	
-	[self addSubview:spinner];
+	[self.indicatorView addSubview:spinner];
 	[spinner startAnimating];
 }
 

@@ -27,6 +27,8 @@
 
 #import <Foundation/Foundation.h>
 
+// Blocks all touches by default. If you want it to not block touches, do:
+// [SHKActivityIndicator currentIndicator].userInteractionEnabled = NO;
 
 @interface SHKActivityIndicator : UIView
 {
@@ -36,13 +38,13 @@
 	UIActivityIndicatorView *spinner;
 }
 
+@property (nonatomic, retain) UIView *indicatorView;
 @property (nonatomic, retain) UILabel *centerMessageLabel;
 @property (nonatomic, retain) UILabel *subMessageLabel;
 
 @property (nonatomic, retain) UIActivityIndicatorView *spinner;
 
 @property (nonatomic, assign) BOOL supportsOrientationChanges;
-
 
 + (SHKActivityIndicator *)currentIndicator;
 + (SHKActivityIndicator *)nonRotatingIndicator;
