@@ -253,8 +253,8 @@ static NSString *const kSHKStoredItemDataPathKey = @"dataPath";
                              delegate:self
                            localAppId:SHKFacebookLocalAppID];
 #else
-    [[SHKFacebook facebook] authorize:[NSArray arrayWithObjects:@"publish_stream",
-                                       @"offline_access", nil]
+    [[SHKFacebook facebook] authorize:@[@"publish_stream",
+                                       @"offline_access"]
                              delegate:self];
 #endif
 }

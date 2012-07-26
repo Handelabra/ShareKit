@@ -167,11 +167,11 @@
 	{
 		class = NSClassFromString(sharerClassName);
 		if ( [class canShare] && [class canShareType:item.shareType] )
-			[sectionData addObject:[NSDictionary dictionaryWithObjectsAndKeys:sharerClassName,@"className",[class sharerTitle],@"name",nil]];
+			[sectionData addObject:@{@"className": sharerClassName,@"name": [class sharerTitle]}];
 	}
 
 	if (sectionData.count && SHKShareMenuAlphabeticalOrder)
-		[sectionData sortUsingDescriptors:[NSArray arrayWithObject:[[[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES selector:@selector(localizedCaseInsensitiveCompare:)] autorelease]]];
+		[sectionData sortUsingDescriptors:@[[[[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES selector:@selector(localizedCaseInsensitiveCompare:)] autorelease]]];
 	
 	return sectionData;
 }

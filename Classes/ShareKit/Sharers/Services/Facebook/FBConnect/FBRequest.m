@@ -182,13 +182,11 @@ static const NSTimeInterval kTimeoutInterval = 180.0;
                               autorelease];
   SBJSON *jsonParser = [[SBJSON new] autorelease];
   if ([responseString isEqualToString:@"true"]) {
-    return [NSDictionary dictionaryWithObject:@"true" forKey:@"result"];
+    return @{@"result": @"true"};
   } else if ([responseString isEqualToString:@"false"]) {
     if (error != nil) {
       *error = [self formError:kGeneralErrorCode
-                      userInfo:[NSDictionary
-                                dictionaryWithObject:@"This operation can not be completed"
-                                forKey:@"error_msg"]];
+                      userInfo:@{@"error_msg": @"This operation can not be completed"}];
     }
     return nil;
   }

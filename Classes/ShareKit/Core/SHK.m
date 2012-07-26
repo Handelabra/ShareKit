@@ -321,23 +321,23 @@ BOOL SHKinit;
 		switch (type) 
 		{
 			case SHKShareTypeURL:
-				favoriteSharers = [NSArray arrayWithObjects:@"SHKTwitter",@"SHKFacebook",@"SHKReadItLater",nil];
+				favoriteSharers = @[@"SHKTwitter",@"SHKFacebook",@"SHKReadItLater"];
 				break;
 				
 			case SHKShareTypeImage:
-				favoriteSharers = [NSArray arrayWithObjects:@"SHKMail",@"SHKFacebook",@"SHKCopy",nil];
+				favoriteSharers = @[@"SHKMail",@"SHKFacebook",@"SHKCopy"];
 				break;
 				
 			case SHKShareTypeText:
-				favoriteSharers = [NSArray arrayWithObjects:@"SHKMail",@"SHKTwitter",@"SHKFacebook",nil];
+				favoriteSharers = @[@"SHKMail",@"SHKTwitter",@"SHKFacebook"];
 				break;
 				
 			case SHKShareTypeFile:
-				favoriteSharers = [NSArray arrayWithObjects:@"SHKMail",@"SHKEvernote",nil];
+				favoriteSharers = @[@"SHKMail",@"SHKEvernote"];
 				break;
 			
 			default:
-				favoriteSharers = [NSArray array];
+				favoriteSharers = @[];
 		}
 		
 		// Save defaults to prefs
@@ -517,11 +517,9 @@ static NSDictionary *sharersDictionary = nil;
 		queueList = [NSMutableArray arrayWithCapacity:0];
 	
 	// Add to queue list
-	[queueList addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-						  [item dictionaryRepresentation],@"item",
-						  sharerId,@"sharer",
-						  uid,@"uid",
-						  nil]];
+	[queueList addObject:@{@"item": [item dictionaryRepresentation],
+						  @"sharer": sharerId,
+						  @"uid": uid}];
 	
 	[self saveOfflineQueueList:queueList];
 	
@@ -574,7 +572,7 @@ static NSDictionary *sharersDictionary = nil;
     NSString *string = [[[NSString alloc] initWithFormat:description arguments:args] autorelease];
     va_end(args);
 	
-	return [NSError errorWithDomain:@"sharekit" code:1 userInfo:[NSDictionary dictionaryWithObject:string forKey:NSLocalizedDescriptionKey]];
+	return [NSError errorWithDomain:@"sharekit" code:1 userInfo:@{NSLocalizedDescriptionKey: string}];
 }
 
 #pragma mark -

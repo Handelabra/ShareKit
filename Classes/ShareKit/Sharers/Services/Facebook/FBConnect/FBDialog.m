@@ -410,7 +410,7 @@ static BOOL FBIsDeviceIPad() {
       NSString * errorCode = [self getStringFromUrl:[url absoluteString] needle:@"error_code="];
       NSString * errorStr = [self getStringFromUrl:[url absoluteString] needle:@"error_msg="];
       if (errorCode) {
-        NSDictionary * errorData = [NSDictionary dictionaryWithObject:errorStr forKey:@"error_msg"];
+        NSDictionary * errorData = @{@"error_msg": errorStr};
         NSError * error = [NSError errorWithDomain:@"facebookErrDomain"
                                               code:[errorCode intValue]
                                           userInfo:errorData];
