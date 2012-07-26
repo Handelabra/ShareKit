@@ -260,14 +260,18 @@
 			forSharer:[self sharerId]];
 
     NSString *session = nil;
-    SEL sessionHandleSelector = @selector(sessionHandle);
+    
+    // There are two possible selectors depending on which version of the file we have in the project, whee
+    SEL sessionHandleSelector = NSSelectorFromString(@"sessionHandle");
+    SEL sessionSelector = NSSelectorFromString(@"session");
+    
     if ([accessToken respondsToSelector:sessionHandleSelector])
     {
-			session = [accessToken performSelector:sessionHandleSelector];
+        session = [accessToken performSelector:sessionHandleSelector];
     }
-    else if ([accessToken respondsToSelector:@selector(session)])
+    else if ([accessToken respondsToSelector:sessionSelector])
     {
-        session = [accessToken performSelector:@selector(session)];
+        session = [accessToken performSelector:sessionSelector];
     }
     
 	[SHK setAuthValue:session
@@ -325,13 +329,17 @@
 		
 		if (sessionHandle != nil)
         {
-            if ([accessToken respondsToSelector:@selector(setSessionHandle:)])
+            // There are two possible selectors depending on which version of the file we have in the project, whee
+            SEL sessionHandleSelector = NSSelectorFromString(@"setSessionHandle:");
+            SEL sessionSelector = NSSelectorFromString(@"setSession:");
+
+            if ([accessToken respondsToSelector:sessionHandleSelector])
             {
-                [accessToken performSelector:@selector(setSessionHandle:) withObject:sessionHandle];
+                [accessToken performSelector:sessionHandleSelector withObject:sessionHandle];
             }
-            else if ([accessToken respondsToSelector:@selector(setSession:)])
+            else if ([accessToken respondsToSelector:sessionSelector])
             {
-                [accessToken performSelector:@selector(setSession:) withObject:sessionHandle];
+                [accessToken performSelector:sessionSelector withObject:sessionHandle];
             }
         }
 		
