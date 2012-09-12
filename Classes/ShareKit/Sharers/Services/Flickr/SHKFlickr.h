@@ -30,7 +30,11 @@
 #import "SHKOAuthView.h"
 #import "ObjectiveFlickr.h"
 
+#if MAC_OS_X_VERSION_MIN_REQUIRED > MAC_OS_X_VERSION_10_4
 @interface SHKFlickr : SHKSharer<OFFlickrAPIRequestDelegate,SHKOAuthViewDelegate> {
+#else
+@interface SHKFlickr : SHKSharer<SHKOAuthViewDelegate> {
+#endif
 	
     OFFlickrAPIContext *flickrContext;
 	OFFlickrAPIRequest *flickrRequest;
